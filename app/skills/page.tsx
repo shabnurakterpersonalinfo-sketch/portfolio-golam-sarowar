@@ -13,6 +13,21 @@ const categoryIcons = {
   Languages: Languages,
 }
 
+// Flag images mapping - using flagcdn.com CDN for high-quality flag images
+const languageFlags: Record<string, string> = {
+  Bengali: "https://flagcdn.com/w320/bd.png",
+  Bangla: "https://flagcdn.com/w320/bd.png",
+  English: "https://flagcdn.com/w320/gb.png",
+  Hindi: "https://flagcdn.com/w320/in.png",
+  Urdu: "https://flagcdn.com/w320/pk.png",
+  Arabic: "https://flagcdn.com/w320/sa.png",
+  Spanish: "https://flagcdn.com/w320/es.png",
+  French: "https://flagcdn.com/w320/fr.png",
+  German: "https://flagcdn.com/w320/de.png",
+  Chinese: "https://flagcdn.com/w320/cn.png",
+  Japanese: "https://flagcdn.com/w320/jp.png",
+}
+
 export default async function SkillsPage() {
   const supabase = await createClient()
 
@@ -59,19 +74,52 @@ export default async function SkillsPage() {
                     {category}
                   </h2>
                   <div className="grid md:grid-cols-4 gap-4">
-                    {(categorySkills as Skill[]).map((skill) => (
-                      <Card
-                        key={skill.id}
-                        className="border-l-4 border-primary hover:shadow-lg transition-all hover:-translate-y-1"
-                      >
-                        <CardContent className="p-6">
-                          <div className="flex flex-col items-center text-center gap-2">
-                            <Icon className="h-8 w-8 text-primary" />
-                            <h3 className="font-bold text-foreground">{skill.name}</h3>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                    {(categorySkills as Skill[]).map((skill) => {
+                      // For Languages category, show flag image instead of icon
+                      const isLanguage = category === "Languages"
+                      const flagUrl = isLanguage ? (languageFlags[skill.name] || null) : null
+                      const proficiency = skill.proficiency || "Basic"
+                      const isHighProficiency =
+                        proficiency.toLowerCase().includes("high") ||
+                        proficiency.toLowerCase().includes("proficient") ||
+                        proficiency.toLowerCase().includes("fluent") ||
+                        proficiency.toLowerCase().includes("expert") ||
+                        proficiency.toLowerCase().includes("native")
+                      
+                      return (
+                        <Card
+                          key={skill.id}
+                          className={`border-l-4 border-primary hover:shadow-lg transition-all hover:-translate-y-1 ${
+                            isLanguage && isHighProficiency ? "bg-[#d4f1e8] border-[#036445]" : ""
+                          }`}
+                        >
+                          <CardContent className="p-6">
+                            <div className="flex flex-col items-center text-center gap-2">
+                              {isLanguage && flagUrl ? (
+                                <div className="relative w-20 h-14 flex items-center justify-center">
+                                  <Image
+                                    src={flagUrl}
+                                    alt={`${skill.name} flag`}
+                                    width={80}
+                                    height={60}
+                                    className="object-contain rounded shadow-sm"
+                                    unoptimized
+                                  />
+                                </div>
+                              ) : (
+                                <Icon className="h-8 w-8 text-primary" />
+                              )}
+                              <h3 className="font-bold text-primary">{skill.name}</h3>
+                              {skill.proficiency && (
+                                <p className={`text-sm ${isLanguage && isHighProficiency ? "text-primary/80 font-medium" : "text-muted-foreground"}`}>
+                                  {skill.proficiency.toLowerCase().includes("native") ? "Native" : skill.proficiency}
+                                </p>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )
+                    })}
                   </div>
                 </section>
               )

@@ -41,18 +41,19 @@ const categoryIcons = {
   Languages: Languages,
 }
 
+// Flag images mapping - using flagcdn.com CDN for high-quality flag images
 const languageFlags: Record<string, string> = {
-  Bengali: "🇧🇩",
-  Bangla: "🇧🇩",
-  English: "🇬🇧",
-  Hindi: "🇮🇳",
-  Urdu: "🇵🇰",
-  Arabic: "🇸🇦",
-  Spanish: "🇪🇸",
-  French: "🇫🇷",
-  German: "🇩🇪",
-  Chinese: "🇨🇳",
-  Japanese: "🇯🇵",
+  Bengali: "https://flagcdn.com/w320/bd.png",
+  Bangla: "https://flagcdn.com/w320/bd.png",
+  English: "https://flagcdn.com/w320/gb.png",
+  Hindi: "https://flagcdn.com/w320/in.png",
+  Urdu: "https://flagcdn.com/w320/pk.png",
+  Arabic: "https://flagcdn.com/w320/sa.png",
+  Spanish: "https://flagcdn.com/w320/es.png",
+  French: "https://flagcdn.com/w320/fr.png",
+  German: "https://flagcdn.com/w320/de.png",
+  Chinese: "https://flagcdn.com/w320/cn.png",
+  Japanese: "https://flagcdn.com/w320/jp.png",
 }
 
 // Force dynamic rendering to prevent caching in production
@@ -888,36 +889,55 @@ export default async function Home() {
                 <TabsContent value="languages">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
                     {groupedSkills?.Languages?.map((skill: any) => {
-                      const flag = languageFlags[skill.name] || "🌐"
-                      const proficiency = skill.description || "Basic"
+                      const flagUrl = languageFlags[skill.name] || null
+                      const proficiency = skill.proficiency || skill.description || "Basic"
                       const isHighProficiency =
                         proficiency.toLowerCase().includes("high") ||
                         proficiency.toLowerCase().includes("proficient") ||
-                        proficiency.toLowerCase().includes("fluent")
+                        proficiency.toLowerCase().includes("fluent") ||
+                        proficiency.toLowerCase().includes("expert")
                       const isNative = proficiency.toLowerCase().includes("native")
 
                       return (
                         <Card
                           key={skill.id}
                           className={`hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden border rounded-xl ${
-                            isHighProficiency ? "bg-[#d4f1e8] border-[#036445]/20" : "bg-white border-gray-200"
+                            isHighProficiency || isNative ? "bg-[#d4f1e8] border-[#036445]/20" : "bg-white border-gray-200"
                           }`}
                         >
                           <CardContent className="p-6">
                             <div className="flex flex-col items-center text-center gap-4">
-                              <div className="text-[100px] leading-none" role="img" aria-label={skill.name}>
-                                {flag}
-                              </div>
+                              {flagUrl ? (
+                                <div className="relative w-32 h-24 flex items-center justify-center">
+                                  <Image
+                                    src={flagUrl}
+                                    alt={`${skill.name} flag`}
+                                    width={128}
+                                    height={96}
+                                    className="object-contain rounded shadow-sm"
+                                    unoptimized
+                                  />
+                                </div>
+                              ) : (
+                                <div className="w-32 h-24 flex items-center justify-center text-6xl">
+                                  🌐
+                                </div>
+                              )}
                               <div className="space-y-1">
-                                <h4 className="font-bold text-foreground text-xl tracking-tight">{skill.name}</h4>
+                                <h4 className="font-bold text-primary text-xl tracking-tight">{skill.name}</h4>
                                 <p
                                   className={`text-sm ${
                                     isHighProficiency || isNative
-                                      ? "text-foreground/80 font-medium"
+                                      ? "text-primary/80 font-medium"
                                       : "text-muted-foreground"
                                   }`}
                                 >
-                                  {isNative ? "Native" : `Proficiency Level ${proficiency}`}
+                                  {isNative 
+                                    ? "Native" 
+                                    : isHighProficiency 
+                                      ? `Proficiency Level ${proficiency.charAt(0).toUpperCase() + proficiency.slice(1).toLowerCase()}`
+                                      : proficiency.charAt(0).toUpperCase() + proficiency.slice(1).toLowerCase()
+                                  }
                                 </p>
                               </div>
                             </div>
