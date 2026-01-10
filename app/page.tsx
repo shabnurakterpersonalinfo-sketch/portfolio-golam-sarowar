@@ -935,7 +935,7 @@ export default async function Home() {
                                   {isNative 
                                     ? "Native" 
                                     : isHighProficiency 
-                                      ? `Proficiency Level ${proficiency.charAt(0).toUpperCase() + proficiency.slice(1).toLowerCase()}`
+                                      ? `${proficiency.charAt(0).toUpperCase() + proficiency.slice(1).toLowerCase()}`
                                       : proficiency.charAt(0).toUpperCase() + proficiency.slice(1).toLowerCase()
                                   }
                                 </p>
