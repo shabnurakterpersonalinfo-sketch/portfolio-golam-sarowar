@@ -74,7 +74,7 @@ export default async function AdminScholarlyActivities() {
         {(!activities || activities.length === 0) && (
           <Card>
             <CardContent className="p-12 text-center">
-              <p className="text-muted-foreground">No scholarly activities yet. Click "Add Activity" to get started.</p>
+              <p className="text-muted-foreground">No scholarly activities yet. Click &quot;Add Activity&quot; to get started.</p>
             </CardContent>
           </Card>
         )}

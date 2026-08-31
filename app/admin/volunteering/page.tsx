@@ -66,7 +66,7 @@ export default async function AdminVolunteering() {
           <Card>
             <CardContent className="p-12 text-center">
               <p className="text-muted-foreground">
-                No volunteering activities yet. Click "Add Volunteering" to get started.
+                No volunteering activities yet. Click &quot;Add Volunteering&quot; to get started.
               </p>
             </CardContent>
           </Card>

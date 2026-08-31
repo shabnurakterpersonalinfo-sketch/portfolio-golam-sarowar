@@ -61,7 +61,7 @@ export default async function AdminEducation() {
         {(!education || education.length === 0) && (
           <Card>
             <CardContent className="p-12 text-center">
-              <p className="text-muted-foreground">No education records yet. Click "Add Education" to get started.</p>
+              <p className="text-muted-foreground">No education records yet. Click &quot;Add Education&quot; to get started.</p>
             </CardContent>
           </Card>
         )}

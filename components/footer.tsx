@@ -1,19 +1,46 @@
 import Link from "next/link"
-import { Facebook, Linkedin, Mail, MapPin, Phone } from "lucide-react"
+import { Mail, MapPin, Phone, Linkedin, Facebook, Github, Twitter, IdCard } from "lucide-react"
+import { createClient } from "@/lib/supabase/server"
+import { getSectionVisibility } from "@/lib/section-visibility"
 
-const navLinks = [
+const ALL_QUICK_LINKS: { name: string; href: string; visibilityKey?: string }[] = [
   { name: "Home", href: "/" },
-  { name: "Experiences", href: "/experiences" },
-  { name: "Scholarly Activities", href: "/scholarly-activities" },
-  { name: "Publications", href: "/publications" },
-  { name: "Honors & Awards", href: "/awards" },
-  { name: "Skills & Courses", href: "/skills" },
-  { name: "Volunteering", href: "/volunteering" },
-  { name: "Blogs", href: "/blogs" },
+  { name: "Experiences", href: "/experiences", visibilityKey: "experiences" },
+  { name: "Scholarly Activities", href: "/scholarly-activities", visibilityKey: "scholarlyActivities" },
+  { name: "Publications", href: "/publications", visibilityKey: "publications" },
+  { name: "Honors & Awards", href: "/awards", visibilityKey: "awards" },
+  { name: "Skills & Courses", href: "/skills", visibilityKey: "skills" },
+  { name: "Volunteering", href: "/volunteering", visibilityKey: "volunteering" },
+  { name: "Blogs", href: "/blogs", visibilityKey: "blogs" },
   { name: "Contact", href: "/contact" },
 ]
 
-export function Footer() {
+export async function Footer() {
+  const year = new Date().getFullYear()
+  const supabase = await createClient()
+
+  const [{ data: profile }, visibility] = await Promise.all([
+    supabase.from("profiles").select("*").single(),
+    getSectionVisibility(supabase),
+  ])
+
+  const navLinks = ALL_QUICK_LINKS.filter(
+    (link) => !link.visibilityKey || visibility[link.visibilityKey as keyof typeof visibility],
+  )
+
+  const address = profile?.address || "Khilkhet, Dhaka, Bangladesh"
+  const email = profile?.email || "mohammad.sarowar06@gmail.com"
+  const phone = profile?.phone || "+880 1876473956"
+  const phoneHref = `tel:${phone.replace(/[^+\d]/g, "")}`
+
+  const socialLinks = [
+    { url: profile?.linkedin_url, label: "LinkedIn", Icon: Linkedin },
+    { url: profile?.facebook_url, label: "Facebook", Icon: Facebook },
+    { url: profile?.github_url, label: "GitHub", Icon: Github },
+    { url: profile?.twitter_url, label: "Twitter", Icon: Twitter },
+    { url: profile?.orcid_url, label: "ORCID", Icon: IdCard },
+  ].filter((social) => Boolean(social.url))
+
   return (
     <footer className="bg-primary text-white">
       <div className="container mx-auto px-4 py-8">
@@ -23,15 +50,19 @@ export function Footer() {
             <div className="space-y-2 text-sm">
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <span>Chittagong University, Hathazari- 4331, Chittagong, Bangladesh</span>
+                <span>{address}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4 flex-shrink-0" />
-                <span>20401026@std.cu.ac.bd</span>
+                <a href={`mailto:${email}`} className="hover:text-primary-light transition-colors">
+                  {email}
+                </a>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 flex-shrink-0" />
-                <span>(+88) 1625 144740</span>
+                <a href={phoneHref} className="hover:text-primary-light transition-colors">
+                  {phone}
+                </a>
               </div>
             </div>
           </div>
@@ -49,29 +80,35 @@ export function Footer() {
 
           <div>
             <h3 className="text-lg font-semibold mb-4">Connect</h3>
-            <div className="flex gap-4">
-              <a
-                href="https://facebook.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-primary-light transition-colors"
-              >
-                <Facebook className="h-6 w-6" />
+            <div className="flex flex-col gap-2 text-sm">
+              <a href={`mailto:${email}`} className="hover:text-primary-light transition-colors">
+                Send an email
               </a>
-              <a
-                href="https://linkedin.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-primary-light transition-colors"
-              >
-                <Linkedin className="h-6 w-6" />
+              <a href={phoneHref} className="hover:text-primary-light transition-colors">
+                Call directly
               </a>
+              {socialLinks.length > 0 && (
+                <div className="flex items-center gap-3 mt-1">
+                  {socialLinks.map(({ url, label, Icon }) => (
+                    <a
+                      key={label}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={label}
+                      className="text-white/80 hover:text-white transition-colors"
+                    >
+                      <Icon className="h-5 w-5" />
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         <div className="mt-8 pt-6 border-t border-primary-dark text-center text-sm">
-          <p>© 2025 MD AMIR HOSSEN</p>
+          <p>© {year} Mohammad Golam Sarowar. All rights reserved.</p>
         </div>
       </div>
     </footer>

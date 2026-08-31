@@ -1,6 +1,6 @@
 # Contact Form Email Setup Guide
 
-This project includes a fully functional contact form that sends emails to **rabiul.personalinfo@gmail.com** when users submit messages through either the contact page (`/contact`) or the home page contact section.
+This project includes a fully functional contact form that sends emails to **mohammad.sarowar06@gmail.com** when users submit messages through either the contact page (`/contact`) or the home page contact section.
 
 ## Features
 
@@ -49,15 +49,15 @@ Add your Resend API key to your project:
    - Your email address
    - A test message
 4. Click **Submit Form**
-5. Check the inbox at **rabiul.personalinfo@gmail.com** for the email
+5. Check the inbox at **mohammad.sarowar06@gmail.com** for the email
 
 ## Email Details
 
 The email sent includes:
 
-- **Subject**: "New Contact Form Submission - Amir Hossen Portfolio"
+- **Subject**: "New Contact Form Submission - Mohammad Golam Sarowar Portfolio"
 - **From**: Portfolio Contact <onboarding@resend.dev>
-- **To**: rabiul.personalinfo@gmail.com
+- **To**: mohammad.sarowar06@gmail.com
 - **Content**: Professional HTML template with:
   - Sender's full name
   - Sender's email address

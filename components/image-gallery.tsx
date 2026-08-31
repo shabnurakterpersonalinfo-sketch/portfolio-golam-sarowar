@@ -16,6 +16,7 @@ export function ImageGallery({ images, title, initialIndex }: ImageGalleryProps)
 
   useEffect(() => {
     if (initialIndex !== undefined && initialIndex !== null) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing selection to the externally-controlled initialIndex prop
       setSelectedIndex(initialIndex)
     }
   }, [initialIndex])

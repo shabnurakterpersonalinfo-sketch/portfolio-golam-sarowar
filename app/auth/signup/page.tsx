@@ -10,8 +10,21 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { UserPlus, AlertCircle } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { UserPlus } from "lucide-react"
+
+// Supabase / Postgres return technical error messages verbatim — translate the
+// common ones into friendly, actionable copy for the toast.
+function friendlySignUpError(message: string): string {
+  const lower = message.toLowerCase()
+  if (lower.includes("row-level security") || lower.includes("row level security")) {
+    return "Sign-up is not enabled for this project's database yet. Please contact the site administrator."
+  }
+  if (lower.includes("already registered") || lower.includes("user already registered")) {
+    return "This email is already registered. Please log in instead."
+  }
+  return message
+}
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -19,8 +32,7 @@ export default function SignUpPage() {
   const [password, setPassword] = useState("")
   const [fullName, setFullName] = useState("")
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [message, setMessage] = useState<string | null>(null)
+  const { toast } = useToast()
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,8 +42,6 @@ export default function SignUpPage() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setError(null)
-    setMessage(null)
 
     try {
       const { data, error: signUpError } = await supabase.auth.signUp({
@@ -59,15 +69,26 @@ export default function SignUpPage() {
       }
 
       if (data.user?.identities?.length === 0) {
-        setError("This email is already registered. Please login instead.")
+        toast({
+          variant: "destructive",
+          title: "Sign up failed",
+          description: "This email is already registered. Please log in instead.",
+        })
       } else {
-        setMessage(
-          "Account created successfully! If email confirmation is enabled, please check your email. Otherwise, you can login now.",
-        )
+        toast({
+          title: "Account created",
+          description:
+            "Account created successfully! If email confirmation is enabled, please check your email. Otherwise, you can log in now.",
+        })
         setTimeout(() => router.push("/auth/login"), 2000)
       }
     } catch (err: any) {
-      setError(err.message || "An error occurred during sign up")
+      const message = err?.message || "An error occurred during sign up"
+      toast({
+        variant: "destructive",
+        title: "Sign up failed",
+        description: friendlySignUpError(message),
+      })
     } finally {
       setLoading(false)
     }
@@ -87,19 +108,6 @@ export default function SignUpPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignUp} className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            {message && (
-              <Alert>
-                <AlertDescription>{message}</AlertDescription>
-              </Alert>
-            )}
-
             <div className="space-y-2">
               <Label htmlFor="fullName">Full Name</Label>
               <Input

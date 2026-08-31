@@ -9,9 +9,9 @@ interface MapLocationProps {
 }
 
 export function MapLocation({
-  latitude = 22.471039,
-  longitude = 91.788467,
-  locationName = "University of Chittagong",
+  latitude = 23.8259,
+  longitude = 90.4249,
+  locationName = "Khilkhet, Dhaka, Bangladesh",
 }: MapLocationProps) {
   // Generate Google Maps embed URL with specific coordinates
   const mapUrl = `https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3689.5!2d${longitude}!3d${latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMjLCsDI4JzE1LjciTiA5McKwNDcnMTguNSJF!5e0!3m2!1sen!2sbd!4v1234567890123!5m2!1sen!2sbd`

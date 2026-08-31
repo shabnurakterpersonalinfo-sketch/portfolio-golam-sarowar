@@ -35,6 +35,7 @@ export function PublicationForm({ publication }: PublicationFormProps) {
 
   useEffect(() => {
     if (publication) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing form fields to the externally-controlled publication prop on edit
       setCategory(publication.category || "Academic Publication")
       setStatus(publication.status || "Published")
       setConferenceImages(publication.conference_images || [])
@@ -564,7 +565,7 @@ export function PublicationForm({ publication }: PublicationFormProps) {
                     name="conference_title"
                     defaultValue={publication?.title || publication?.conference_title}
                     required
-                    placeholder="e.g., Inflation and Socioeconomic Challenges in the Chittagong Hill Tracks"
+                    placeholder="e.g., IoT-Based Smart Contract Framework for Supply Chain Traceability"
                   />
                   <p className="text-xs text-muted-foreground">
                     This will be used as the main publication title

@@ -3,7 +3,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Profile table (single row for the portfolio owner)
 CREATE TABLE IF NOT EXISTS profiles (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   full_name TEXT NOT NULL,
   title TEXT NOT NULL,
   bio TEXT NOT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS profiles (
 
 -- Education table
 CREATE TABLE IF NOT EXISTS education (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   institution TEXT NOT NULL,
   degree TEXT NOT NULL,
   field_of_study TEXT,
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS education (
 
 -- Professional Experience table
 CREATE TABLE IF NOT EXISTS experiences (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   position TEXT NOT NULL,
   organization TEXT NOT NULL,
   project_name TEXT,
@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS experiences (
 
 -- Publications table
 CREATE TABLE IF NOT EXISTS publications (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
   authors TEXT NOT NULL,
   journal TEXT,
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS publications (
 
 -- Skills table
 CREATE TABLE IF NOT EXISTS skills (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   category TEXT NOT NULL,
   proficiency TEXT DEFAULT 'Advanced',
@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS skills (
 
 -- Awards and Honors table
 CREATE TABLE IF NOT EXISTS awards (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
   issuer TEXT NOT NULL,
   date TEXT NOT NULL,
@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS awards (
 
 -- Volunteering table
 CREATE TABLE IF NOT EXISTS volunteering (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   role TEXT NOT NULL,
   organization TEXT NOT NULL,
   start_date TEXT NOT NULL,
@@ -111,7 +111,7 @@ CREATE TABLE IF NOT EXISTS volunteering (
 
 -- Scholarly Activities table
 CREATE TABLE IF NOT EXISTS scholarly_activities (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
   type TEXT NOT NULL,
   organization TEXT,
@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS scholarly_activities (
 
 -- Blogs table
 CREATE TABLE IF NOT EXISTS blogs (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
   excerpt TEXT,
   content TEXT NOT NULL,
@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS blogs (
 
 -- Certifications table
 CREATE TABLE IF NOT EXISTS certifications (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   issuer TEXT NOT NULL,
   issue_date TEXT NOT NULL,

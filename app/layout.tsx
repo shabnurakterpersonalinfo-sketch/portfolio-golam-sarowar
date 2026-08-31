@@ -1,21 +1,69 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter, Playfair_Display } from "next/font/google"
+import "@fontsource-variable/inter"
+import "@fontsource-variable/playfair-display"
 import { Analytics } from "@vercel/analytics/next"
+import { Toaster } from "@/components/ui/toaster"
 import "./globals.css"
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
-const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" })
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mohammadgolamsarowar.com"
+const siteName = "Mohammad Golam Sarowar | Network Engineer & Researcher"
+const siteDescription =
+  "Portfolio of Mohammad Golam Sarowar - Network Engineer and Researcher specializing in Core IP Networks, Distributed Systems, IoT, AI/ML, and Federated Learning."
 
 export const metadata: Metadata = {
-  title: "MD. Amir Hossen | Economist & Researcher",
-  description:
-    "Portfolio of MD. Amir Hossen - Prospective Graduate Student, Aspiring Economist & Researcher specializing in development economics, applied microeconomics, and labor economics.",
-  keywords: ["Economist", "Researcher", "Economics", "Portfolio", "Graduate Student", "Academic", "Publications"],
-  authors: [{ name: "MD. Amir Hossen" }],
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: siteName,
+    template: "%s | Mohammad Golam Sarowar",
+  },
+  description: siteDescription,
+  keywords: [
+    "Mohammad Golam Sarowar",
+    "Network Engineer",
+    "Core IP Network",
+    "BGP",
+    "OSPF",
+    "MPLS",
+    "IoT",
+    "AI/ML",
+    "Federated Learning",
+    "Distributed Systems",
+    "Network Security",
+    "Portfolio",
+    "Researcher",
+  ],
+  authors: [{ name: "Mohammad Golam Sarowar" }],
+  creator: "Mohammad Golam Sarowar",
   icons: {
     icon: "/icon",
     apple: "/icon",
+  },
+  openGraph: {
+    type: "website",
+    url: siteUrl,
+    siteName,
+    title: siteName,
+    description: siteDescription,
+    locale: "en_US",
+    images: [
+      {
+        url: "/profile-hero.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Mohammad Golam Sarowar",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteName,
+    description: siteDescription,
+    images: ["/profile-hero.jpg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 }
 
@@ -26,8 +74,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${playfair.variable} font-sans antialiased`}>
+      <body className="font-sans antialiased">
         {children}
+        <Toaster />
         <Analytics />
       </body>
     </html>

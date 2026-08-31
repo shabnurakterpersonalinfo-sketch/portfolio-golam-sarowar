@@ -58,7 +58,7 @@ export default async function AdminAwards() {
         {(!awards || awards.length === 0) && (
           <Card className="col-span-full">
             <CardContent className="p-12 text-center">
-              <p className="text-muted-foreground">No awards yet. Click "Add Award" to get started.</p>
+              <p className="text-muted-foreground">No awards yet. Click &quot;Add Award&quot; to get started.</p>
             </CardContent>
           </Card>
         )}

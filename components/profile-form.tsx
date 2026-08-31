@@ -80,6 +80,8 @@ export function ProfileForm({ profile }: ProfileFormProps) {
       linkedin_url: formData.get("linkedin_url") as string,
       facebook_url: formData.get("facebook_url") as string,
       github_url: formData.get("github_url") as string,
+      orcid_url: formData.get("orcid_url") as string,
+      twitter_url: formData.get("twitter_url") as string,
     }
 
     try {
@@ -214,6 +216,26 @@ export function ProfileForm({ profile }: ProfileFormProps) {
             <div className="space-y-2">
               <Label htmlFor="github_url">GitHub URL</Label>
               <Input id="github_url" name="github_url" defaultValue={profile?.github_url} />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="orcid_url">ORCID iD URL</Label>
+              <Input
+                id="orcid_url"
+                name="orcid_url"
+                defaultValue={profile?.orcid_url}
+                placeholder="https://orcid.org/0000-0000-0000-0000"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="twitter_url">Twitter / X URL</Label>
+              <Input
+                id="twitter_url"
+                name="twitter_url"
+                defaultValue={profile?.twitter_url}
+                placeholder="https://twitter.com/yourhandle"
+              />
             </div>
           </div>
 

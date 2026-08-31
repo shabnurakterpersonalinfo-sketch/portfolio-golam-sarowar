@@ -5,7 +5,7 @@ import { PageHero } from "@/components/page-hero"
 import { MapLocation } from "@/components/map-location"
 import { ContactForm } from "@/components/contact-form"
 import { Card, CardContent } from "@/components/ui/card"
-import { MapPin, Mail, Phone, Linkedin, Facebook } from "lucide-react"
+import { MapPin, Mail, Phone, Linkedin, Facebook, Twitter, IdCard } from "lucide-react"
 
 export default async function ContactPage() {
   const supabase = await createClient()
@@ -36,7 +36,7 @@ export default async function ContactPage() {
                       <div>
                         <p className="font-medium">Address</p>
                         <p className="text-sm text-muted-foreground">
-                          {profile?.address || "Chittagong University, Hathazari- 4331, Chittagong, Bangladesh"}
+                          {profile?.address || "Khilkhet, Dhaka, Bangladesh"}
                         </p>
                       </div>
                     </div>
@@ -44,14 +44,14 @@ export default async function ContactPage() {
                       <Mail className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                       <div>
                         <p className="font-medium">Email</p>
-                        <p className="text-sm text-muted-foreground">{profile?.email || "20401026@std.cu.ac.bd"}</p>
+                        <p className="text-sm text-muted-foreground">{profile?.email || "mohammad.sarowar06@gmail.com"}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
                       <Phone className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                       <div>
                         <p className="font-medium">Phone</p>
-                        <p className="text-sm text-muted-foreground">{profile?.phone || "+880 1625144740"}</p>
+                        <p className="text-sm text-muted-foreground">{profile?.phone || "+880 1876473956"}</p>
                       </div>
                     </div>
                   </div>
@@ -71,26 +71,54 @@ export default async function ContactPage() {
                 </CardContent>
               </Card>
 
-              <div className="mt-4 flex gap-4">
-                <a
-                  href={profile?.linkedin_url || "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark transition-colors"
-                >
-                  <Linkedin className="h-5 w-5" />
-                  <span className="text-sm font-medium">LinkedIn</span>
-                </a>
-                <a
-                  href={profile?.facebook_url || "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark transition-colors"
-                >
-                  <Facebook className="h-5 w-5" />
-                  <span className="text-sm font-medium">Facebook</span>
-                </a>
-              </div>
+              {(profile?.linkedin_url || profile?.facebook_url || profile?.twitter_url || profile?.orcid_url) && (
+                <div className="mt-4 flex flex-wrap gap-4">
+                  {profile?.linkedin_url && (
+                    <a
+                      href={profile.linkedin_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark transition-colors"
+                    >
+                      <Linkedin className="h-5 w-5" />
+                      <span className="text-sm font-medium">LinkedIn</span>
+                    </a>
+                  )}
+                  {profile?.facebook_url && (
+                    <a
+                      href={profile.facebook_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark transition-colors"
+                    >
+                      <Facebook className="h-5 w-5" />
+                      <span className="text-sm font-medium">Facebook</span>
+                    </a>
+                  )}
+                  {profile?.twitter_url && (
+                    <a
+                      href={profile.twitter_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark transition-colors"
+                    >
+                      <Twitter className="h-5 w-5" />
+                      <span className="text-sm font-medium">Twitter</span>
+                    </a>
+                  )}
+                  {profile?.orcid_url && (
+                    <a
+                      href={profile.orcid_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark transition-colors"
+                    >
+                      <IdCard className="h-5 w-5" />
+                      <span className="text-sm font-medium">ORCID</span>
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Contact Form */}
@@ -105,9 +133,9 @@ export default async function ContactPage() {
           <div className="mt-8">
             <h2 className="text-2xl font-bold text-primary mb-4 text-center">Find Me Here</h2>
             <MapLocation
-              latitude={22.471039}
-              longitude={91.788467}
-              locationName="University of Chittagong, Bangladesh"
+              latitude={23.8259}
+              longitude={90.4249}
+              locationName="Khilkhet, Dhaka, Bangladesh"
             />
           </div>
         </div>

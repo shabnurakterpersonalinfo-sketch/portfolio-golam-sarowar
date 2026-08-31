@@ -67,7 +67,7 @@ export default async function AdminExperiences() {
         {(!experiences || experiences.length === 0) && (
           <Card>
             <CardContent className="p-12 text-center">
-              <p className="text-muted-foreground">No experiences yet. Click "Add Experience" to get started.</p>
+              <p className="text-muted-foreground">No experiences yet. Click &quot;Add Experience&quot; to get started.</p>
             </CardContent>
           </Card>
         )}

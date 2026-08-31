@@ -15,8 +15,8 @@ export async function POST(request: Request) {
     // Send email using Resend
     const { data, error } = await resend.emails.send({
       from: "onboarding@resend.dev",
-      to: "mdamirhossen574@gmail.com",
-      subject: "New Contact Form Submission - Amir Hossen Portfolio",
+      to: "mohammad.sarowar06@gmail.com",
+      subject: "New Contact Form Submission - Mohammad Golam Sarowar Portfolio",
       html: `
         <!DOCTYPE html>
         <html>
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
                 </div>
               </div>
               <div class="footer">
-                <p>This email was sent from Amir Hossen's portfolio contact form</p>
+                <p>This email was sent from Mohammad Golam Sarowar's portfolio contact form</p>
               </div>
             </div>
           </body>

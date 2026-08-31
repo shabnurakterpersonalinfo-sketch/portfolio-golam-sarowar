@@ -18,6 +18,8 @@ export default async function AdminSkills() {
 
   const { data: skills } = await supabase.from("skills").select("*").order("display_order", { ascending: true })
 
+  type Skill = NonNullable<typeof skills>[number]
+
   const groupedSkills = skills?.reduce(
     (acc, skill) => {
       if (!acc[skill.category]) {
@@ -26,7 +28,7 @@ export default async function AdminSkills() {
       acc[skill.category].push(skill)
       return acc
     },
-    {} as Record<string, typeof skills>,
+    {} as Record<string, Skill[]>,
   )
 
   return (
@@ -44,7 +46,7 @@ export default async function AdminSkills() {
         </Button>
       </div>
 
-      {Object.entries(groupedSkills || {}).map(([category, categorySkills]) => (
+      {(Object.entries(groupedSkills ?? {}) as [string, Skill[]][]).map(([category, categorySkills]) => (
         <div key={category} className="space-y-4">
           <h2 className="text-xl font-bold text-primary">{category}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -72,7 +74,7 @@ export default async function AdminSkills() {
       {(!skills || skills.length === 0) && (
         <Card>
           <CardContent className="p-12 text-center">
-            <p className="text-muted-foreground">No skills yet. Click "Add Skill" to get started.</p>
+            <p className="text-muted-foreground">No skills yet. Click &quot;Add Skill&quot; to get started.</p>
           </CardContent>
         </Card>
       )}

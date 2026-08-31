@@ -65,7 +65,7 @@ export default async function Icon() {
           borderRadius: "50%",
         }}
       >
-        <span style={{ color: "white", fontSize: "20px", fontWeight: "bold" }}>MA</span>
+        <span style={{ color: "white", fontSize: "20px", fontWeight: "bold" }}>MS</span>
       </div>
     ),
     {

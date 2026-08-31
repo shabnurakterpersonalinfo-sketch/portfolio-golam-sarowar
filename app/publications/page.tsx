@@ -40,6 +40,7 @@ export default async function PublicationsPage() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="space-y-12">
             {/* Academic Publications */}
+            {academicPublications.length > 0 && (
             <section>
               <h2 className="text-2xl font-bold text-primary mb-6 flex items-center gap-2">
                 <BookOpen className="h-6 w-6" />
@@ -119,6 +120,7 @@ export default async function PublicationsPage() {
                 ))}
               </div>
             </section>
+            )}
 
             {/* Non-Academic Publications */}
             {nonAcademicPublications.length > 0 && (

@@ -26,6 +26,8 @@ import {
   Phone,
   Linkedin,
   Facebook,
+  Twitter,
+  IdCard,
   ChevronDown,
   FileText,
   Quote,
@@ -105,6 +107,36 @@ export default async function Home() {
 
   const maxItemsToShow = 3
 
+  // For each tabbed section, only keep tabs that actually have content, ordered so a
+  // tab with data always comes before an empty one (an empty tab is never shown at
+  // all — there's nothing to click into). The first surviving tab becomes the
+  // default/active one. If every tab in a section is empty, the section itself is
+  // hidden further down (see the `.length > 0` guards around each <section>).
+  const gridColsClass: Record<number, string> = {
+    1: "grid-cols-1",
+    2: "grid-cols-2",
+    3: "grid-cols-3",
+    4: "grid-cols-4",
+  }
+
+  const experienceTabs = [
+    { key: "research", label: "Research", items: researchExperiences },
+    { key: "industry", label: "Industry", items: industryExperiences },
+  ].filter((tab) => tab.items.length > 0)
+
+  const publicationTabs = [
+    { key: "academic", label: "Academic", items: academicPublications },
+    { key: "conference", label: "Conference", items: conferencePublications },
+    { key: "non-academic", label: "Non-Academic", items: nonAcademicPublications },
+    { key: "work-in-progress", label: "In Progress", items: workInProgress },
+  ].filter((tab) => tab.items.length > 0)
+
+  const skillTabs = [
+    { key: "technical", label: "Technical", items: groupedSkills?.Technical || [] },
+    { key: "interpersonal", label: "Interpersonal", items: groupedSkills?.Interpersonal || [] },
+    { key: "languages", label: "Languages", items: groupedSkills?.Languages || [] },
+  ].filter((tab) => tab.items.length > 0)
+
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
@@ -119,14 +151,14 @@ export default async function Home() {
                 <div>
                   <p className="text-sm sm:text-base text-muted-foreground mb-2">Welcome to my portfolio</p>
                   <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-primary mb-3 sm:mb-4 leading-tight">
-                    {profile?.full_name || "MD. Amir Hossen"}
+                    {profile?.full_name || "Mohammad Golam Sarowar"}
                   </h1>
                   <p className="text-lg sm:text-xl md:text-2xl text-foreground/80 mb-4 sm:mb-6">
-                    {profile?.title || "Economist & Researcher"}
+                    {profile?.title || "Network Engineer & Researcher"}
                   </p>
                   <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
                     {profile?.bio ||
-                      "Prospective Graduate Student | Aspiring Economist & Researcher specializing in development economics, applied microeconomics, and labor economics."}
+                      "Network Engineer and Researcher specializing in Core IP Networks, Distributed Systems, IoT, AI/ML, and Federated Learning for secure, reliable digital infrastructure."}
                   </p>
                 </div>
 
@@ -151,7 +183,7 @@ export default async function Home() {
                   <div className="relative w-full h-full rounded-full overflow-hidden border-4 sm:border-8 border-primary shadow-2xl transition-all duration-500 hover:scale-105 hover:shadow-primary/50">
                     <Image
                       src={profile?.profile_image || "/placeholder.svg?height=400&width=400"}
-                      alt={profile?.full_name || "Profile"}
+                      alt={profile?.full_name || "Mohammad Golam Sarowar"}
                       fill
                       className="object-cover transition-transform duration-500 group-hover:scale-110"
                       priority
@@ -222,6 +254,7 @@ export default async function Home() {
         </section>
 
         {/* Experiences Section with Tabs */}
+        {experienceTabs.length > 0 && (
         <section id="experiences" className="py-20 md:py-24 bg-muted/30 scroll-mt-20">
           <div className="container mx-auto px-6 max-w-7xl">
             <div className="text-center mb-16">
@@ -233,22 +266,22 @@ export default async function Home() {
               </p>
             </div>
 
-            <Tabs defaultValue="research" className="max-w-5xl mx-auto">
-              <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-12 h-auto p-1 bg-white shadow-sm">
-                <TabsTrigger
-                  value="research"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-white py-3 text-base font-semibold"
-                >
-                  Research
-                </TabsTrigger>
-                <TabsTrigger
-                  value="industry"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-white py-3 text-base font-semibold"
-                >
-                  Industry
-                </TabsTrigger>
+            <Tabs defaultValue={experienceTabs[0].key} className="max-w-5xl mx-auto">
+              <TabsList
+                className={`grid w-full max-w-md mx-auto ${gridColsClass[experienceTabs.length] || "grid-cols-1"} mb-12 h-auto p-1 bg-white shadow-sm`}
+              >
+                {experienceTabs.map((tab) => (
+                  <TabsTrigger
+                    key={tab.key}
+                    value={tab.key}
+                    className="data-[state=active]:bg-primary data-[state=active]:text-white py-3 text-base font-semibold"
+                  >
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
               </TabsList>
 
+              {researchExperiences.length > 0 && (
               <TabsContent value="research" className="space-y-6">
                 {researchExperiences.slice(0, maxItemsToShow).map((exp: any) => (
                   <Card
@@ -302,30 +335,6 @@ export default async function Home() {
                     </CardContent>
                   </Card>
                 ))}
-                {researchExperiences.length === 0 && (
-                  <p className="text-center text-muted-foreground py-12 text-lg">No research experiences available.</p>
-                )}
-                
-                {/* Research Portfolio Link */}
-                <div className="flex justify-center pt-6">
-                  <Button
-                    asChild
-                    size="lg"
-                    variant="outline"
-                    className="border-2 border-primary text-primary hover:bg-primary hover:text-white font-semibold"
-                  >
-                    <Link
-                      href="https://drive.google.com/drive/folders/1XmWCbws-t2uRTTOm-kd4wJozBuMv99wc?dmr=1&ec=wgc-drive-hero-goto"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Briefcase className="mr-2 h-5 w-5" />
-                      View Research Evidence Portfolio
-                      <ExternalLink className="ml-2 h-5 w-5" />
-                    </Link>
-                  </Button>
-                </div>
-
                 {researchExperiences.length > maxItemsToShow && (
                   <div className="flex justify-center pt-4">
                     <Button asChild size="lg" className="bg-primary hover:bg-primary-dark font-semibold">
@@ -336,7 +345,9 @@ export default async function Home() {
                   </div>
                 )}
               </TabsContent>
+              )}
 
+              {industryExperiences.length > 0 && (
               <TabsContent value="industry" className="space-y-6">
                 {industryExperiences.slice(0, maxItemsToShow).map((exp: any) => (
                   <Card
@@ -390,9 +401,6 @@ export default async function Home() {
                     </CardContent>
                   </Card>
                 ))}
-                {industryExperiences.length === 0 && (
-                  <p className="text-center text-muted-foreground py-12 text-lg">No industry experiences available.</p>
-                )}
                 {industryExperiences.length > maxItemsToShow && (
                   <div className="flex justify-center pt-8">
                     <Button asChild size="lg" className="bg-primary hover:bg-primary-dark font-semibold">
@@ -403,11 +411,14 @@ export default async function Home() {
                   </div>
                 )}
               </TabsContent>
+              )}
             </Tabs>
           </div>
         </section>
+        )}
 
         {/* Scholarly Activities Section */}
+        {scholarlyActivities && scholarlyActivities.length > 0 && (
         <section id="scholarly-activities" className="py-20 md:py-24 bg-white scroll-mt-20">
           <div className="container mx-auto px-6 max-w-7xl">
             <div className="text-center mb-16">
@@ -459,8 +470,10 @@ export default async function Home() {
             </div>
           </div>
         </section>
+        )}
 
         {/* Publications Section with Tabs */}
+        {publicationTabs.length > 0 && (
         <section id="publications" className="py-20 md:py-24 bg-muted/30 scroll-mt-20">
           <div className="container mx-auto px-6 max-w-7xl">
             <div className="text-center mb-16">
@@ -472,34 +485,22 @@ export default async function Home() {
               </p>
             </div>
 
-            <Tabs defaultValue="academic" className="max-w-5xl mx-auto">
-              <TabsList className="grid w-full max-w-3xl mx-auto grid-cols-4 mb-12 h-auto p-1 bg-white shadow-sm">
-                <TabsTrigger
-                  value="academic"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-white py-3 text-xs md:text-sm font-semibold"
-                >
-                  Academic
-                </TabsTrigger>
-                <TabsTrigger
-                  value="conference"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-white py-3 text-xs md:text-sm font-semibold"
-                >
-                  Conference
-                </TabsTrigger>
-                <TabsTrigger
-                  value="non-academic"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-white py-3 text-xs md:text-sm font-semibold"
-                >
-                  Non-Academic
-                </TabsTrigger>
-                <TabsTrigger
-                  value="work-in-progress"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-white py-3 text-xs md:text-sm font-semibold"
-                >
-                  In Progress
-                </TabsTrigger>
+            <Tabs defaultValue={publicationTabs[0].key} className="max-w-5xl mx-auto">
+              <TabsList
+                className={`grid w-full max-w-3xl mx-auto ${gridColsClass[publicationTabs.length] || "grid-cols-1"} mb-12 h-auto p-1 bg-white shadow-sm`}
+              >
+                {publicationTabs.map((tab) => (
+                  <TabsTrigger
+                    key={tab.key}
+                    value={tab.key}
+                    className="data-[state=active]:bg-primary data-[state=active]:text-white py-3 text-xs md:text-sm font-semibold"
+                  >
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
               </TabsList>
 
+              {academicPublications.length > 0 && (
               <TabsContent value="academic" className="space-y-6">
                 <div className="grid gap-6">
                   {academicPublications.slice(0, maxItemsToShow).map((pub: any) => (
@@ -586,9 +587,6 @@ export default async function Home() {
                     </Card>
                   ))}
                 </div>
-                {academicPublications.length === 0 && (
-                  <p className="text-center text-muted-foreground py-12 text-lg">No academic publications available.</p>
-                )}
                 {academicPublications.length > maxItemsToShow && (
                   <div className="flex justify-center pt-8">
                     <Button asChild size="lg" className="bg-primary hover:bg-primary-dark font-semibold">
@@ -599,18 +597,15 @@ export default async function Home() {
                   </div>
                 )}
               </TabsContent>
+              )}
 
+              {conferencePublications.length > 0 && (
               <TabsContent value="conference" className="space-y-6">
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {conferencePublications.slice(0, maxItemsToShow).map((pub: any) => (
                     <ConferencePublicationSummary key={pub.id} publication={pub} />
                   ))}
                 </div>
-                {conferencePublications.length === 0 && (
-                  <p className="text-center text-muted-foreground py-12 text-lg">
-                    No conference publications available.
-                  </p>
-                )}
                 {conferencePublications.length > maxItemsToShow && (
                   <div className="flex justify-center pt-8">
                     <Button asChild size="lg" className="bg-primary hover:bg-primary-dark font-semibold">
@@ -622,7 +617,9 @@ export default async function Home() {
                   </div>
                 )}
               </TabsContent>
+              )}
 
+              {nonAcademicPublications.length > 0 && (
               <TabsContent value="non-academic" className="space-y-6">
                 <div className="grid gap-6">
                   {nonAcademicPublications.slice(0, maxItemsToShow).map((pub: any) => (
@@ -648,11 +645,6 @@ export default async function Home() {
                     </Card>
                   ))}
                 </div>
-                {nonAcademicPublications.length === 0 && (
-                  <p className="text-center text-muted-foreground py-12 text-lg">
-                    No non-academic publications available.
-                  </p>
-                )}
                 {nonAcademicPublications.length > maxItemsToShow && (
                   <div className="flex justify-center pt-8">
                     <Button asChild size="lg" className="bg-primary hover:bg-primary-dark font-semibold">
@@ -664,7 +656,9 @@ export default async function Home() {
                   </div>
                 )}
               </TabsContent>
+              )}
 
+              {workInProgress.length > 0 && (
               <TabsContent value="work-in-progress" className="space-y-6">
                 {workInProgress.slice(0, maxItemsToShow).map((pub: any) => (
                   <Card
@@ -719,11 +713,6 @@ export default async function Home() {
                     </CardContent>
                   </Card>
                 ))}
-                {workInProgress.length === 0 && (
-                  <p className="text-center text-muted-foreground py-12 text-lg">
-                    No work in progress publications available.
-                  </p>
-                )}
                 {workInProgress.length > maxItemsToShow && (
                   <div className="flex justify-center pt-8">
                     <Button asChild size="lg" className="bg-primary hover:bg-primary-dark font-semibold">
@@ -734,11 +723,14 @@ export default async function Home() {
                   </div>
                 )}
               </TabsContent>
+              )}
             </Tabs>
           </div>
         </section>
+        )}
 
         {/* Awards Section */}
+        {awards && awards.length > 0 && (
         <section id="awards" className="py-20 md:py-24 bg-white scroll-mt-20">
           <div className="container mx-auto px-6 max-w-7xl">
             <div className="text-center mb-16">
@@ -802,8 +794,10 @@ export default async function Home() {
             </div>
           </div>
         </section>
+        )}
 
         {/* Skills Section with Tabs */}
+        {skillTabs.length > 0 && (
         <section id="skills" className="py-20 md:py-24 bg-muted/30 scroll-mt-20">
           <div className="container mx-auto px-6 max-w-7xl">
             <div className="text-center mb-16">
@@ -816,28 +810,22 @@ export default async function Home() {
             </div>
 
             <div className="max-w-6xl mx-auto space-y-8">
-              <Tabs defaultValue="technical" className="w-full">
-                <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-3 mb-12 h-auto p-1 bg-white shadow-sm">
-                  <TabsTrigger
-                    value="technical"
-                    className="data-[state=active]:bg-primary data-[state=active]:text-white py-3 text-base font-semibold"
-                  >
-                    Technical
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="interpersonal"
-                    className="data-[state=active]:bg-primary data-[state=active]:text-white py-3 text-base font-semibold"
-                  >
-                    Interpersonal
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="languages"
-                    className="data-[state=active]:bg-primary data-[state=active]:text-white py-3 text-base font-semibold"
-                  >
-                    Languages
-                  </TabsTrigger>
+              <Tabs defaultValue={skillTabs[0].key} className="w-full">
+                <TabsList
+                  className={`grid w-full max-w-2xl mx-auto ${gridColsClass[skillTabs.length] || "grid-cols-1"} mb-12 h-auto p-1 bg-white shadow-sm`}
+                >
+                  {skillTabs.map((tab) => (
+                    <TabsTrigger
+                      key={tab.key}
+                      value={tab.key}
+                      className="data-[state=active]:bg-primary data-[state=active]:text-white py-3 text-base font-semibold"
+                    >
+                      {tab.label}
+                    </TabsTrigger>
+                  ))}
                 </TabsList>
 
+                {(groupedSkills?.Technical?.length ?? 0) > 0 && (
                 <TabsContent value="technical">
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {groupedSkills?.Technical?.slice(0, 8).map((skill: any) => (
@@ -856,11 +844,10 @@ export default async function Home() {
                       </Card>
                     ))}
                   </div>
-                  {(!groupedSkills?.Technical || groupedSkills.Technical.length === 0) && (
-                    <p className="text-center text-muted-foreground py-12 text-lg">No technical skills available.</p>
-                  )}
                 </TabsContent>
+                )}
 
+                {(groupedSkills?.Interpersonal?.length ?? 0) > 0 && (
                 <TabsContent value="interpersonal">
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {groupedSkills?.Interpersonal?.slice(0, 8).map((skill: any) => (
@@ -879,13 +866,10 @@ export default async function Home() {
                       </Card>
                     ))}
                   </div>
-                  {(!groupedSkills?.Interpersonal || groupedSkills.Interpersonal.length === 0) && (
-                    <p className="text-center text-muted-foreground py-12 text-lg">
-                      No interpersonal skills available.
-                    </p>
-                  )}
                 </TabsContent>
+                )}
 
+                {(groupedSkills?.Languages?.length ?? 0) > 0 && (
                 <TabsContent value="languages">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
                     {groupedSkills?.Languages?.map((skill: any) => {
@@ -946,10 +930,8 @@ export default async function Home() {
                       )
                     })}
                   </div>
-                  {(!groupedSkills?.Languages || groupedSkills.Languages.length === 0) && (
-                    <p className="text-center text-muted-foreground py-12 text-lg">No language skills available.</p>
-                  )}
                 </TabsContent>
+                )}
               </Tabs>
 
               <div className="flex justify-center pt-8">
@@ -962,8 +944,10 @@ export default async function Home() {
             </div>
           </div>
         </section>
+        )}
 
         {/* Volunteering Section */}
+        {volunteering && volunteering.length > 0 && (
         <section id="volunteering" className="py-20 md:py-24 bg-white scroll-mt-20">
           <div className="container mx-auto px-6 max-w-7xl">
             <div className="text-center mb-16">
@@ -1018,6 +1002,7 @@ export default async function Home() {
             </div>
           </div>
         </section>
+        )}
 
         {/* Contact Section */}
         <section id="contact" className="py-20 md:py-24 bg-muted/30 scroll-mt-20">
@@ -1045,10 +1030,10 @@ export default async function Home() {
                         <div>
                           <p className="font-semibold text-foreground mb-1">Email</p>
                           <a
-                            href={`mailto:${profile?.email || "20401026@std.cu.ac.bd"}`}
+                            href={`mailto:${profile?.email || "mohammad.sarowar06@gmail.com"}`}
                             className="text-primary hover:underline"
                           >
-                            {profile?.email || "20401026@std.cu.ac.bd"}
+                            {profile?.email || "mohammad.sarowar06@gmail.com"}
                           </a>
                         </div>
                       </div>
@@ -1068,8 +1053,8 @@ export default async function Home() {
                           <School className="h-6 w-6 text-primary" />
                         </div>
                         <div>
-                          <p className="font-semibold text-foreground mb-1">Institution</p>
-                          <p className="text-muted-foreground">University of Chittagong</p>
+                          <p className="font-semibold text-foreground mb-1">Organization</p>
+                          <p className="text-muted-foreground">Digi Jadoo Broadband Ltd.</p>
                         </div>
                       </div>
                     </div>
@@ -1098,6 +1083,30 @@ export default async function Home() {
                           >
                             <a href={profile.facebook_url} target="_blank" rel="noopener noreferrer">
                               <Facebook className="h-5 w-5" />
+                            </a>
+                          </Button>
+                        )}
+                        {profile?.twitter_url && (
+                          <Button
+                            asChild
+                            variant="outline"
+                            size="icon"
+                            className="border-2 border-primary hover:bg-primary hover:text-white bg-transparent"
+                          >
+                            <a href={profile.twitter_url} target="_blank" rel="noopener noreferrer">
+                              <Twitter className="h-5 w-5" />
+                            </a>
+                          </Button>
+                        )}
+                        {profile?.orcid_url && (
+                          <Button
+                            asChild
+                            variant="outline"
+                            size="icon"
+                            className="border-2 border-primary hover:bg-primary hover:text-white bg-transparent"
+                          >
+                            <a href={profile.orcid_url} target="_blank" rel="noopener noreferrer">
+                              <IdCard className="h-5 w-5" />
                             </a>
                           </Button>
                         )}

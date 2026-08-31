@@ -1,20 +1,28 @@
-import { createServerClient } from "@supabase/ssr"
+import { createServerClient, type CookieOptions } from "@supabase/ssr"
 import { cookies } from "next/headers"
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://tdhzokzwxtxuzsanobva.supabase.co"
-const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkaHpva3p3eHR4dXpzYW5vYnZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ3OTMwNTksImV4cCI6MjA1MDM2OTA1OX0.c-TJBvg3oNO7sKqBjnSjCGBHICLVxiNGOC4eZlPwTr0"
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error(
+    "Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables. Set them in .env.local for this client's own Supabase project.",
+  )
+}
+
+// Non-null: validated by the guard above, which runs once at module load.
+const validatedUrl: string = supabaseUrl
+const validatedAnonKey: string = supabaseAnonKey
 
 export async function createClient() {
   const cookieStore = await cookies()
 
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
+  return createServerClient(validatedUrl, validatedAnonKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll()
       },
-      setAll(cookiesToSet) {
+      setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
         try {
           cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
         } catch {

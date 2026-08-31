@@ -146,7 +146,7 @@ export function EducationForm({ education }: EducationFormProps) {
               id="field_of_study"
               name="field_of_study"
               defaultValue={education?.field_of_study}
-              placeholder="e.g., Economics"
+              placeholder="e.g., Computer Science and Engineering"
             />
           </div>
 

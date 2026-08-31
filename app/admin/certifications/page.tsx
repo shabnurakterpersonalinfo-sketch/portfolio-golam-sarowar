@@ -73,7 +73,7 @@ export default async function AdminCertifications() {
         {(!certifications || certifications.length === 0) && (
           <Card>
             <CardContent className="p-12 text-center">
-              <p className="text-muted-foreground">No certifications yet. Click "Add Certification" to get started.</p>
+              <p className="text-muted-foreground">No certifications yet. Click &quot;Add Certification&quot; to get started.</p>
             </CardContent>
           </Card>
         )}

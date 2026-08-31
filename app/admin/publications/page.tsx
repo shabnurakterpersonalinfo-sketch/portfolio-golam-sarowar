@@ -76,7 +76,7 @@ export default async function AdminPublications() {
         {(!publications || publications.length === 0) && (
           <Card>
             <CardContent className="p-12 text-center">
-              <p className="text-muted-foreground">No publications yet. Click "Add Publication" to get started.</p>
+              <p className="text-muted-foreground">No publications yet. Click &quot;Add Publication&quot; to get started.</p>
             </CardContent>
           </Card>
         )}
