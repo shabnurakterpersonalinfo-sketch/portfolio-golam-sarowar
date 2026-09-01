@@ -24,14 +24,13 @@ import {
   Heart,
   Building2,
   Phone,
-  Linkedin,
   Facebook,
   Twitter,
-  IdCard,
   ChevronDown,
   FileText,
   Quote,
 } from "lucide-react"
+import { LinkedinIcon, OrcidIcon, GithubIcon } from "@/components/icons/brand-icons"
 import Image from "next/image"
 import Link from "next/link"
 import { ConferencePublicationSummary } from "@/components/conference-publication-summary"
@@ -1070,7 +1069,7 @@ export default async function Home() {
                             className="border-2 border-primary hover:bg-primary hover:text-white bg-transparent"
                           >
                             <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer">
-                              <Linkedin className="h-5 w-5" />
+                              <LinkedinIcon className="h-5 w-5" />
                             </a>
                           </Button>
                         )}
@@ -1083,6 +1082,18 @@ export default async function Home() {
                           >
                             <a href={profile.facebook_url} target="_blank" rel="noopener noreferrer">
                               <Facebook className="h-5 w-5" />
+                            </a>
+                          </Button>
+                        )}
+                        {profile?.github_url && (
+                          <Button
+                            asChild
+                            variant="outline"
+                            size="icon"
+                            className="border-2 border-primary hover:bg-primary hover:text-white bg-transparent"
+                          >
+                            <a href={profile.github_url} target="_blank" rel="noopener noreferrer">
+                              <GithubIcon className="h-5 w-5" />
                             </a>
                           </Button>
                         )}
@@ -1106,7 +1117,7 @@ export default async function Home() {
                             className="border-2 border-primary hover:bg-primary hover:text-white bg-transparent"
                           >
                             <a href={profile.orcid_url} target="_blank" rel="noopener noreferrer">
-                              <IdCard className="h-5 w-5" />
+                              <OrcidIcon className="h-5 w-5" />
                             </a>
                           </Button>
                         )}

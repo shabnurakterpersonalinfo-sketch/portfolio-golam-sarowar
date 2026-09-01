@@ -5,7 +5,8 @@ import { PageHero } from "@/components/page-hero"
 import { MapLocation } from "@/components/map-location"
 import { ContactForm } from "@/components/contact-form"
 import { Card, CardContent } from "@/components/ui/card"
-import { MapPin, Mail, Phone, Linkedin, Facebook, Twitter, IdCard } from "lucide-react"
+import { MapPin, Mail, Phone, Facebook, Twitter } from "lucide-react"
+import { LinkedinIcon, OrcidIcon, GithubIcon } from "@/components/icons/brand-icons"
 
 export default async function ContactPage() {
   const supabase = await createClient()
@@ -71,7 +72,11 @@ export default async function ContactPage() {
                 </CardContent>
               </Card>
 
-              {(profile?.linkedin_url || profile?.facebook_url || profile?.twitter_url || profile?.orcid_url) && (
+              {(profile?.linkedin_url ||
+                profile?.facebook_url ||
+                profile?.github_url ||
+                profile?.twitter_url ||
+                profile?.orcid_url) && (
                 <div className="mt-4 flex flex-wrap gap-4">
                   {profile?.linkedin_url && (
                     <a
@@ -80,7 +85,7 @@ export default async function ContactPage() {
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark transition-colors"
                     >
-                      <Linkedin className="h-5 w-5" />
+                      <LinkedinIcon className="h-5 w-5" />
                       <span className="text-sm font-medium">LinkedIn</span>
                     </a>
                   )}
@@ -93,6 +98,17 @@ export default async function ContactPage() {
                     >
                       <Facebook className="h-5 w-5" />
                       <span className="text-sm font-medium">Facebook</span>
+                    </a>
+                  )}
+                  {profile?.github_url && (
+                    <a
+                      href={profile.github_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark transition-colors"
+                    >
+                      <GithubIcon className="h-5 w-5" />
+                      <span className="text-sm font-medium">GitHub</span>
                     </a>
                   )}
                   {profile?.twitter_url && (
@@ -113,7 +129,7 @@ export default async function ContactPage() {
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark transition-colors"
                     >
-                      <IdCard className="h-5 w-5" />
+                      <OrcidIcon className="h-5 w-5" />
                       <span className="text-sm font-medium">ORCID</span>
                     </a>
                   )}

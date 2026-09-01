@@ -1,5 +1,6 @@
 import Link from "next/link"
-import { Mail, MapPin, Phone, Linkedin, Facebook, Github, Twitter, IdCard } from "lucide-react"
+import { Mail, MapPin, Phone, Facebook, Twitter } from "lucide-react"
+import { LinkedinIcon, OrcidIcon, GithubIcon } from "@/components/icons/brand-icons"
 import { createClient } from "@/lib/supabase/server"
 import { getSectionVisibility } from "@/lib/section-visibility"
 
@@ -34,11 +35,11 @@ export async function Footer() {
   const phoneHref = `tel:${phone.replace(/[^+\d]/g, "")}`
 
   const socialLinks = [
-    { url: profile?.linkedin_url, label: "LinkedIn", Icon: Linkedin },
+    { url: profile?.linkedin_url, label: "LinkedIn", Icon: LinkedinIcon },
     { url: profile?.facebook_url, label: "Facebook", Icon: Facebook },
-    { url: profile?.github_url, label: "GitHub", Icon: Github },
+    { url: profile?.github_url, label: "GitHub", Icon: GithubIcon },
     { url: profile?.twitter_url, label: "Twitter", Icon: Twitter },
-    { url: profile?.orcid_url, label: "ORCID", Icon: IdCard },
+    { url: profile?.orcid_url, label: "ORCID", Icon: OrcidIcon },
   ].filter((social) => Boolean(social.url))
 
   return (
