@@ -10,6 +10,7 @@ export interface SectionVisibility {
   skills: boolean
   volunteering: boolean
   blogs: boolean
+  gallery: boolean
 }
 
 const EMPTY_VISIBILITY: SectionVisibility = {
@@ -20,6 +21,7 @@ const EMPTY_VISIBILITY: SectionVisibility = {
   skills: false,
   volunteering: false,
   blogs: false,
+  gallery: false,
 }
 
 // `supabase` is loosely typed (matches the rest of this codebase's convention of
@@ -27,15 +29,17 @@ const EMPTY_VISIBILITY: SectionVisibility = {
 // specific client type across the server/browser client variants.
 export async function getSectionVisibility(supabase: any): Promise<SectionVisibility> {
   try {
-    const [experiences, scholarlyActivities, publications, awards, skills, volunteering, blogs] = await Promise.all([
-      supabase.from("experiences").select("id", { count: "exact", head: true }),
-      supabase.from("scholarly_activities").select("id", { count: "exact", head: true }),
-      supabase.from("publications").select("id", { count: "exact", head: true }),
-      supabase.from("awards").select("id", { count: "exact", head: true }),
-      supabase.from("skills").select("id", { count: "exact", head: true }),
-      supabase.from("volunteering").select("id", { count: "exact", head: true }),
-      supabase.from("blogs").select("id", { count: "exact", head: true }).eq("is_published", true),
-    ])
+    const [experiences, scholarlyActivities, publications, awards, skills, volunteering, blogs, gallery] =
+      await Promise.all([
+        supabase.from("experiences").select("id", { count: "exact", head: true }),
+        supabase.from("scholarly_activities").select("id", { count: "exact", head: true }),
+        supabase.from("publications").select("id", { count: "exact", head: true }),
+        supabase.from("awards").select("id", { count: "exact", head: true }),
+        supabase.from("skills").select("id", { count: "exact", head: true }),
+        supabase.from("volunteering").select("id", { count: "exact", head: true }),
+        supabase.from("blogs").select("id", { count: "exact", head: true }).eq("is_published", true),
+        supabase.from("gallery_items").select("id", { count: "exact", head: true }),
+      ])
 
     return {
       experiences: (experiences.count ?? 0) > 0,
@@ -45,6 +49,7 @@ export async function getSectionVisibility(supabase: any): Promise<SectionVisibi
       skills: (skills.count ?? 0) > 0,
       volunteering: (volunteering.count ?? 0) > 0,
       blogs: (blogs.count ?? 0) > 0,
+      gallery: (gallery.count ?? 0) > 0,
     }
   } catch {
     // If the visibility check itself fails for any reason, fail open: show every
@@ -57,6 +62,7 @@ export async function getSectionVisibility(supabase: any): Promise<SectionVisibi
       skills: true,
       volunteering: true,
       blogs: true,
+      gallery: true,
     }
   }
 }

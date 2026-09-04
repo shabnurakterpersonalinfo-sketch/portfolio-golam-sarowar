@@ -16,6 +16,7 @@ const ALL_NAV_ITEMS: (NavItem & { visibilityKey?: keyof Awaited<ReturnType<typeo
   { name: "Skills & Courses", href: "/skills", scrollTo: "skills", visibilityKey: "skills" },
   { name: "Volunteering", href: "/volunteering", scrollTo: "volunteering", visibilityKey: "volunteering" },
   { name: "Blogs", href: "/blogs", scrollTo: "blogs", visibilityKey: "blogs" },
+  { name: "Gallery", href: "/gallery", scrollTo: "gallery", visibilityKey: "gallery" },
   { name: "Contact", href: "/contact", scrollTo: "contact" },
 ]
 

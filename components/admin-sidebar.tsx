@@ -14,6 +14,7 @@ import {
   LogOut,
   Menu,
   X,
+  Images,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
@@ -31,6 +32,7 @@ const navItems = [
   { name: "Certifications", href: "/admin/certifications", icon: FileText },
   { name: "Volunteering", href: "/admin/volunteering", icon: Heart },
   { name: "Scholarly Activities", href: "/admin/scholarly-activities", icon: GraduationCap },
+  { name: "Gallery", href: "/admin/gallery", icon: Images },
 ]
 
 export function AdminSidebar() {

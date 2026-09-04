@@ -13,6 +13,7 @@ const ALL_QUICK_LINKS: { name: string; href: string; visibilityKey?: string }[] 
   { name: "Skills & Courses", href: "/skills", visibilityKey: "skills" },
   { name: "Volunteering", href: "/volunteering", visibilityKey: "volunteering" },
   { name: "Blogs", href: "/blogs", visibilityKey: "blogs" },
+  { name: "Gallery", href: "/gallery", visibilityKey: "gallery" },
   { name: "Contact", href: "/contact" },
 ]
 

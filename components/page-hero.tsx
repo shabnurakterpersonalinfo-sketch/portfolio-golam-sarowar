@@ -12,10 +12,11 @@ interface PageHeroProps {
     | "contact"
     | "awards"
     | "skills"
+    | "gallery"
 }
 
 export function PageHero({ title, subtitle, backgroundType }: PageHeroProps) {
-  const backgroundImages = {
+  const backgroundImages: Partial<Record<PageHeroProps["backgroundType"], string>> = {
     experience: "/professional-office-workspace-illustration-teal-gr.jpg",
     scholarly: "/academic-research-books-graduation-illustration-te.jpg",
     publications: "/writing-research-papers-books-illustration-teal-gr.jpg",
@@ -24,7 +25,11 @@ export function PageHero({ title, subtitle, backgroundType }: PageHeroProps) {
     contact: "/person-working-at-desk-with-plants-office-illustra.jpg",
     awards: "/trophy-awards-achievement-celebration-illustration.jpg",
     skills: "/learning-skills-development-technology-illustratio.jpg",
+    // No themed illustration for gallery yet — fall back to the plain gradient
+    // below rather than showing an unrelated stock photo.
   }
+
+  const backgroundImage = backgroundImages[backgroundType]
 
   return (
     <div
@@ -33,16 +38,18 @@ export function PageHero({ title, subtitle, backgroundType }: PageHeroProps) {
         background: "linear-gradient(135deg, #036445 0%, #05967d 50%, #7dd3c0 100%)",
       }}
     >
-      {/* Decorative background image */}
-      <div
-        className="absolute inset-0 opacity-30"
-        style={{
-          backgroundImage: `url("${backgroundImages[backgroundType]}")`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
-      />
+      {/* Decorative background image (only rendered when a themed illustration exists) */}
+      {backgroundImage && (
+        <div
+          className="absolute inset-0 opacity-30"
+          style={{
+            backgroundImage: `url("${backgroundImage}")`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+          }}
+        />
+      )}
 
       {/* Content */}
       <div className="relative z-10 text-center px-4">

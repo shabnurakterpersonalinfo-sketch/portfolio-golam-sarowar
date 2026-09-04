@@ -35,6 +35,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { ConferencePublicationSummary } from "@/components/conference-publication-summary"
 import { LinkPreview } from "@/components/link-preview"
+import { GalleryTeaser } from "@/components/gallery-teaser"
 
 const categoryIcons = {
   Interpersonal: Users,
@@ -82,6 +83,10 @@ export default async function Home() {
     .order("display_order", { ascending: true })
   const { data: scholarlyActivities } = await supabase
     .from("scholarly_activities")
+    .select("*")
+    .order("display_order", { ascending: true })
+  const { data: galleryItems } = await supabase
+    .from("gallery_items")
     .select("*")
     .order("display_order", { ascending: true })
 
@@ -999,6 +1004,23 @@ export default async function Home() {
                 </div>
               )}
             </div>
+          </div>
+        </section>
+        )}
+
+        {/* Gallery Section */}
+        {galleryItems && galleryItems.length > 0 && (
+        <section id="gallery" className="py-20 md:py-24 bg-white scroll-mt-20">
+          <div className="container mx-auto px-6 max-w-7xl">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-bold text-primary mb-4">Gallery</h2>
+              <div className="w-20 h-1.5 bg-primary mx-auto rounded-full mb-6"></div>
+              <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                Moments from the journey — a running story of milestones, events, and behind-the-scenes highlights.
+              </p>
+            </div>
+
+            <GalleryTeaser items={galleryItems.slice(0, 6)} />
           </div>
         </section>
         )}

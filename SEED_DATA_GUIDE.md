@@ -4,7 +4,7 @@ This portfolio is **database-driven**, not file-driven. Almost none of the conte
 
 There are exactly three places content can come from:
 
-1. **Supabase tables** — profile, education, experience, publications, skills, certifications, awards, volunteering, scholarly activities, blogs. Edit these via the `/admin` panel or SQL.
+1. **Supabase tables** — profile, education, experience, publications, skills, certifications, awards, volunteering, scholarly activities, blogs, gallery items. Edit these via the `/admin` panel or SQL.
 2. **A handful of static UI strings** — SEO metadata, nav labels, footer boilerplate, contact-form fallback text. Edit these directly in the listed `.tsx`/`.ts` files.
 3. **Static assets in `public/`** — the CV PDF, the Open Graph image, placeholder illustrations.
 
@@ -26,20 +26,25 @@ There are exactly three places content can come from:
 │   ├── volunteering/page.tsx    # Full volunteering list
 │   ├── scholarly-activities/page.tsx
 │   ├── blogs/page.tsx           # Full blog list (blogs table, is_published = true only)
+│   ├── gallery/page.tsx         # Full gallery timeline (gallery_items table, chronological cards)
 │   ├── contact/page.tsx         # Contact info + map + contact form
 │   ├── api/contact/route.ts     # Sends contact-form submissions via Resend to mohammad.sarowar06@gmail.com
 │   └── admin/                   # CRUD UI for every table below (auth-protected)
 ├── components/
-│   ├── navbar.tsx                # Logo text ("M. SAROWAR") + nav links (static)
-│   ├── footer.tsx                 # Contact info, quick links, copyright (static)
+│   ├── navbar.tsx, navbar-client.tsx   # Nav links — server wrapper hides a link if that section is empty (lib/section-visibility.ts)
+│   ├── footer.tsx                       # Contact info (from `profiles`), quick links (same visibility rule), social icons
+│   ├── gallery-teaser.tsx                # Homepage "Gallery" preview: click a list item to swap the large photo
+│   ├── icons/brand-icons.tsx              # Official LinkedIn/ORCID/GitHub logo SVGs (lucide has no ORCID icon)
 │   ├── download-cv-button.tsx      # Points at /Mohammad_Golam_Sarowar_CV.pdf (static)
 │   └── map-location.tsx            # Default map coordinates (static, overridden by contact/page.tsx)
 ├── lib/supabase/
 │   ├── client.ts / server.ts / proxy.ts   # Supabase connections — REQUIRE env vars, no fallback project
+├── lib/section-visibility.ts        # Cheap count checks so Navbar/Footer/homepage hide any fully-empty section
 ├── scripts/
 │   ├── 001_create_tables.sql        # Full schema (10 tables)
 │   ├── 003_create_storage_bucket.sql, 006_fix_rls_policies.sql, 007–013_*.sql   # Migrations (images, conference fields, PDFs)
-│   └── 014_seed_new_client_data.sql  # ⭐ This client's seed data (profile → scholarly activities)
+│   ├── 014_seed_new_client_data.sql  # ⭐ This client's seed data (profile → scholarly activities)
+│   └── 017_create_gallery.sql        # gallery_items table + gallery-images storage bucket
 └── public/
     ├── Mohammad_Golam_Sarowar_CV.pdf   # Downloadable CV (served by the "Download CV" button)
     └── profile-hero.jpg, icon.svg, ...  # Illustrations + OG image
@@ -61,6 +66,7 @@ There are exactly three places content can come from:
 | Volunteering | `volunteering` table | `/admin/volunteering` |
 | Scholarly activities (conferences, workshops, presentations) | `scholarly_activities` table | `/admin/scholarly-activities` |
 | Blog posts | `blogs` table | `/admin/blogs` route is not built yet — insert via SQL or Supabase Studio for now |
+| Gallery / story timeline (photos + captions) | `gallery_items` table | `/admin/gallery` |
 | CV PDF download | `public/Mohammad_Golam_Sarowar_CV.pdf` | Replace the file, keep the filename or update `components/download-cv-button.tsx` |
 | Site title / meta description / OG image | `app/layout.tsx` | Edit `siteName`, `siteDescription`, `/profile-hero.jpg` |
 | Footer address/phone/email, nav brand | `components/footer.tsx`, `components/navbar.tsx` | Edit directly (kept static since they render before any DB fetch) |
@@ -226,6 +232,22 @@ interface Certification {
 }
 ```
 
+### Gallery Item
+
+```typescript
+interface GalleryItem {
+  id: string
+  title: string
+  summary: string | null        // one line, shown in the homepage preview list
+  story: string | null          // longer narrative, shown on the /gallery timeline page
+  image: string | null          // public Supabase Storage URL (gallery-images bucket)
+  event_date: string            // required, free text e.g. "Aug 2026" — controls the eyebrow label, not the sort order
+  location: string | null
+  external_link: string | null  // optional link to a full album/post, shown as "View full story" on /gallery
+  display_order: number         // sets timeline order top-to-bottom — set it explicitly
+}
+```
+
 ---
 
 ## 5. Edge-Case Checklist
@@ -241,3 +263,5 @@ interface Certification {
 - [ ] **LinkedIn/Facebook icons only render when a URL is set** on the `profiles` row (both `app/page.tsx` and `app/contact/page.tsx` already guard on this) — no need to leave a placeholder `"#"` link.
 - [ ] **`.env.local` must point at this client's own Supabase project.** `lib/supabase/{client,server,proxy}.ts` throw an explicit error at startup if `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` are missing — there is no silent fallback to any other project.
 - [ ] **Blog publishing:** the `/admin` panel does not yet have a Blogs CRUD screen (only the schema and public listing exist). Insert rows via Supabase Studio or SQL, and set `is_published = true` for it to appear.
+- [ ] **Every section can vanish on its own.** Navbar, Footer, and each homepage block hide themselves automatically when their table has zero rows (see `lib/section-visibility.ts`) — an empty Gallery, for example, means no "Gallery" link anywhere and no empty section on the homepage. This is automatic; you don't need to hide anything manually.
+- [ ] **Gallery `display_order` is the timeline order**, not `event_date` — the site never parses dates, so set `display_order` to match chronological order yourself (e.g. oldest = 1) when adding entries out of sequence.
