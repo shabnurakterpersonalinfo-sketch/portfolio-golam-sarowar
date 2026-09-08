@@ -15,6 +15,8 @@ import {
   Menu,
   X,
   Images,
+  Mail,
+  KeyRound,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
@@ -33,6 +35,8 @@ const navItems = [
   { name: "Volunteering", href: "/admin/volunteering", icon: Heart },
   { name: "Scholarly Activities", href: "/admin/scholarly-activities", icon: GraduationCap },
   { name: "Gallery", href: "/admin/gallery", icon: Images },
+  { name: "Messages", href: "/admin/messages", icon: Mail },
+  { name: "Change Password", href: "/admin/settings", icon: KeyRound },
 ]
 
 export function AdminSidebar() {
