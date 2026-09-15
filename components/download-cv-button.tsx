@@ -3,14 +3,21 @@
 import { Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-export function DownloadCVButton() {
+interface DownloadCVButtonProps {
+  cvUrl?: string | null
+}
+
+export function DownloadCVButton({ cvUrl }: DownloadCVButtonProps) {
+  // Fall back to the bundled static CV if the admin hasn't uploaded one yet.
+  const href = cvUrl || "/Mohammad_Golam_Sarowar_CV.pdf"
+
   const handleDownloadCV = () => {
     const link = document.createElement("a")
-    link.href = "/Mohammad_Golam_Sarowar_CV.pdf"
+    link.href = href
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-    window.open("/Mohammad_Golam_Sarowar_CV.pdf", "_blank")
+    window.open(href, "_blank")
   }
 
   return (

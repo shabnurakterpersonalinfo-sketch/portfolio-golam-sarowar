@@ -30,7 +30,14 @@ import {
   FileText,
   Quote,
 } from "lucide-react"
-import { LinkedinIcon, OrcidIcon, GithubIcon } from "@/components/icons/brand-icons"
+import {
+  LinkedinIcon,
+  OrcidIcon,
+  GithubIcon,
+  ResearchGateIcon,
+  GoogleScholarIcon,
+  YoutubeIcon,
+} from "@/components/icons/brand-icons"
 import Image from "next/image"
 import Link from "next/link"
 import { ConferencePublicationSummary } from "@/components/conference-publication-summary"
@@ -176,7 +183,7 @@ export default async function Home() {
                       Get in Touch
                     </Button>
                   </ScrollButton>
-                  <DownloadCVButton />
+                  <DownloadCVButton cvUrl={profile?.cv_url} />
                 </div>
                 <div className="pb-20 sm:pb-16 md:pb-12"></div>
               </div>
@@ -1140,6 +1147,42 @@ export default async function Home() {
                           >
                             <a href={profile.orcid_url} target="_blank" rel="noopener noreferrer">
                               <OrcidIcon className="h-5 w-5" />
+                            </a>
+                          </Button>
+                        )}
+                        {profile?.researchgate_url && (
+                          <Button
+                            asChild
+                            variant="outline"
+                            size="icon"
+                            className="border-2 border-primary hover:bg-primary hover:text-white bg-transparent"
+                          >
+                            <a href={profile.researchgate_url} target="_blank" rel="noopener noreferrer">
+                              <ResearchGateIcon className="h-5 w-5" />
+                            </a>
+                          </Button>
+                        )}
+                        {profile?.googlescholar_url && (
+                          <Button
+                            asChild
+                            variant="outline"
+                            size="icon"
+                            className="border-2 border-primary hover:bg-primary hover:text-white bg-transparent"
+                          >
+                            <a href={profile.googlescholar_url} target="_blank" rel="noopener noreferrer">
+                              <GoogleScholarIcon className="h-5 w-5" />
+                            </a>
+                          </Button>
+                        )}
+                        {profile?.youtube_url && (
+                          <Button
+                            asChild
+                            variant="outline"
+                            size="icon"
+                            className="border-2 border-primary hover:bg-primary hover:text-white bg-transparent"
+                          >
+                            <a href={profile.youtube_url} target="_blank" rel="noopener noreferrer">
+                              <YoutubeIcon className="h-5 w-5" />
                             </a>
                           </Button>
                         )}

@@ -1,6 +1,13 @@
 import Link from "next/link"
 import { Mail, MapPin, Phone, Facebook, Twitter } from "lucide-react"
-import { LinkedinIcon, OrcidIcon, GithubIcon } from "@/components/icons/brand-icons"
+import {
+  LinkedinIcon,
+  OrcidIcon,
+  GithubIcon,
+  ResearchGateIcon,
+  GoogleScholarIcon,
+  YoutubeIcon,
+} from "@/components/icons/brand-icons"
 import { createClient } from "@/lib/supabase/server"
 import { getSectionVisibility } from "@/lib/section-visibility"
 
@@ -41,6 +48,9 @@ export async function Footer() {
     { url: profile?.github_url, label: "GitHub", Icon: GithubIcon },
     { url: profile?.twitter_url, label: "Twitter", Icon: Twitter },
     { url: profile?.orcid_url, label: "ORCID", Icon: OrcidIcon },
+    { url: profile?.researchgate_url, label: "ResearchGate", Icon: ResearchGateIcon },
+    { url: profile?.googlescholar_url, label: "Google Scholar", Icon: GoogleScholarIcon },
+    { url: profile?.youtube_url, label: "YouTube", Icon: YoutubeIcon },
   ].filter((social) => Boolean(social.url))
 
   return (

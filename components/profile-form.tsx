@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2 } from "lucide-react"
+import { Loader2, FileText } from "lucide-react"
 import Image from "next/image"
 import { useToast } from "@/hooks/use-toast"
 
@@ -26,6 +26,9 @@ export function ProfileForm({ profile }: ProfileFormProps) {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [imagePreview, setImagePreview] = useState(profile?.profile_image || "")
+  const [cvUrl, setCvUrl] = useState(profile?.cv_url || "")
+  const [cvFileName, setCvFileName] = useState("")
+  const [uploadingCv, setUploadingCv] = useState(false)
   const { toast } = useToast()
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,6 +61,45 @@ export function ProfileForm({ profile }: ProfileFormProps) {
     }
   }
 
+  const handleCvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.type !== "application/pdf") {
+      setError("Please upload a PDF file for your CV.")
+      return
+    }
+
+    setUploadingCv(true)
+    setError(null)
+
+    const supabase = createClient()
+
+    try {
+      const fileExt = file.name.split(".").pop()
+      const fileName = `cv-${Date.now()}.${fileExt}`
+      const filePath = `${fileName}`
+
+      const { error: uploadError } = await supabase.storage.from("cv-files").upload(filePath, file, {
+        contentType: "application/pdf",
+        upsert: true,
+      })
+
+      if (uploadError) throw uploadError
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("cv-files").getPublicUrl(filePath)
+
+      setCvUrl(publicUrl)
+      setCvFileName(file.name)
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setUploadingCv(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
@@ -82,6 +124,10 @@ export function ProfileForm({ profile }: ProfileFormProps) {
       github_url: formData.get("github_url") as string,
       orcid_url: formData.get("orcid_url") as string,
       twitter_url: formData.get("twitter_url") as string,
+      researchgate_url: formData.get("researchgate_url") as string,
+      googlescholar_url: formData.get("googlescholar_url") as string,
+      youtube_url: formData.get("youtube_url") as string,
+      cv_url: cvUrl,
     }
 
     try {
@@ -147,6 +193,40 @@ export function ProfileForm({ profile }: ProfileFormProps) {
                 )}
               </div>
             </div>
+          </div>
+
+          {/* CV / Resume */}
+          <div className="space-y-4">
+            <Label>CV / Resume (PDF)</Label>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <Input
+                type="file"
+                accept="application/pdf"
+                onChange={handleCvUpload}
+                disabled={uploadingCv}
+                className="max-w-xs"
+              />
+              {uploadingCv && (
+                <p className="text-sm text-muted-foreground flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Uploading...
+                </p>
+              )}
+              {!uploadingCv && cvUrl && (
+                <a
+                  href={cvUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary hover:underline flex items-center gap-2"
+                >
+                  <FileText className="h-4 w-4" />
+                  {cvFileName || "View current CV"}
+                </a>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Upload a PDF to replace the current CV. This is the file visitors get from the “Download CV” button.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -235,6 +315,36 @@ export function ProfileForm({ profile }: ProfileFormProps) {
                 name="twitter_url"
                 defaultValue={profile?.twitter_url}
                 placeholder="https://twitter.com/yourhandle"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="researchgate_url">ResearchGate URL</Label>
+              <Input
+                id="researchgate_url"
+                name="researchgate_url"
+                defaultValue={profile?.researchgate_url}
+                placeholder="https://www.researchgate.net/profile/your-name"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="googlescholar_url">Google Scholar URL</Label>
+              <Input
+                id="googlescholar_url"
+                name="googlescholar_url"
+                defaultValue={profile?.googlescholar_url}
+                placeholder="https://scholar.google.com/citations?user=..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="youtube_url">YouTube Channel URL</Label>
+              <Input
+                id="youtube_url"
+                name="youtube_url"
+                defaultValue={profile?.youtube_url}
+                placeholder="https://www.youtube.com/@yourchannel"
               />
             </div>
           </div>
