@@ -12,6 +12,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
+import { EntryLogoField, EntryMediaEditor } from "@/components/entry-media-editor"
+import { type EntryMediaItem, parseEntryMedia } from "@/lib/entry-media"
 
 interface ExperienceFormProps {
   experience?: any
@@ -22,6 +24,8 @@ export function ExperienceForm({ experience }: ExperienceFormProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { toast } = useToast()
+  const [logoUrl, setLogoUrl] = useState<string>(experience?.logo_url || "")
+  const [media, setMedia] = useState<EntryMediaItem[]>(parseEntryMedia(experience?.media))
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -49,6 +53,9 @@ export function ExperienceForm({ experience }: ExperienceFormProps) {
       description: formData.get("description") as string,
       responsibilities,
       category: formData.get("category") as string,
+      logo_url: logoUrl || null,
+      website_url: (formData.get("website_url") as string) || null,
+      media: media.filter((item) => item.url),
     }
 
     try {
@@ -213,6 +220,15 @@ export function ExperienceForm({ experience }: ExperienceFormProps) {
               placeholder="• Analyzed panel datasets...&#10;• Estimated difference-in-differences models...&#10;• Designed stakeholder surveys..."
             />
           </div>
+
+          <EntryLogoField
+            logoUrl={logoUrl}
+            onLogoChange={setLogoUrl}
+            websiteUrl={experience?.website_url}
+            websiteLabel="Company Website / Portfolio Link"
+          />
+
+          <EntryMediaEditor value={media} onChange={setMedia} hint="Workplace photos, training certificates and company or project links, shown under this experience like on LinkedIn." />
 
           <div className="flex gap-3">
             <Button type="submit" className="bg-primary hover:bg-primary-dark" disabled={loading}>

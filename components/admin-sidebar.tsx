@@ -17,6 +17,7 @@ import {
   Images,
   Mail,
   KeyRound,
+  Presentation,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
@@ -26,6 +27,7 @@ import { useState } from "react"
 const navItems = [
   { name: "Dashboard", href: "/admin", icon: User },
   { name: "Profile", href: "/admin/profile", icon: User },
+  { name: "Hero Slides", href: "/admin/hero-slides", icon: Presentation },
   { name: "Education", href: "/admin/education", icon: GraduationCap },
   { name: "Experiences", href: "/admin/experiences", icon: Briefcase },
   { name: "Publications", href: "/admin/publications", icon: BookOpen },

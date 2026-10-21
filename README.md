@@ -26,7 +26,7 @@ A modern, full-featured portfolio website for Mohammad Golam Sarowar — Network
 - **Server-Side Rendering**: Optimized performance with Next.js Server Components
 - **Database Integration**: Powered by Supabase for scalable data management
 - **File Storage**: Secure file uploads with Supabase Storage
-- **Email Integration**: Contact form submissions via Resend API
+- **Email Integration**: Contact form notifications via Gmail SMTP (Google App Password)
 - **SEO Optimized**: Meta tags, OpenGraph/Twitter cards, `sitemap.xml`, `robots.txt`
 - **Responsive Design**: Mobile-first approach with Tailwind CSS
 - **Self-hosted fonts**: Inter & Playfair Display via `@fontsource`, no external font-CDN dependency at build or runtime
@@ -45,7 +45,7 @@ A modern, full-featured portfolio website for Mohammad Golam Sarowar — Network
 - **Database**: Supabase (PostgreSQL)
 - **Authentication**: Supabase Auth
 - **File Storage**: Supabase Storage
-- **Email Service**: Resend API
+- **Email Service**: Gmail SMTP via Nodemailer (Google App Password)
 
 ### Development
 - **Language**: TypeScript (strict mode, zero `ignoreBuildErrors`)
@@ -60,7 +60,7 @@ Before running this project, ensure you have:
 - Node.js 18+ installed
 - npm package manager
 - A Supabase project (for database and storage) — **use a dedicated project for this client**, do not reuse another client's project
-- Resend API key (for email functionality)
+- A Gmail account with 2-Step Verification and an App Password (for email notifications)
 - Git (for version control)
 
 ## 🚀 Getting Started
@@ -73,15 +73,19 @@ npm install
 
 ### 2. Environment Variables
 
-Create a `.env.local` file in the root directory (see `.env.local` already present for this deployment, or start fresh). Only 3 variables are needed — this is the complete list the app reads from `process.env`:
+Create a `.env.local` file in the root directory (see `.env.local` already present for this deployment, or start fresh). The variables the app reads from `process.env`:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-RESEND_API_KEY=your_resend_api_key
+GMAIL_USER=your_gmail_address@gmail.com
+GMAIL_APP_PASSWORD=your_16_character_app_password
+# Optional
+CONTACT_TO=where_notifications_go@example.com
+CONTACT_FROM_NAME=Mohammad Golam Sarowar
 ```
 
-`NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are **required** — the app throws at startup if they're missing (see `lib/supabase/*.ts`), so it can never silently fall back to a different Supabase project. `RESEND_API_KEY` is required only for the contact form to send email.
+`NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are **required** — the app throws at startup if they're missing (see `lib/supabase/*.ts`), so it can never silently fall back to a different Supabase project. `GMAIL_USER` and `GMAIL_APP_PASSWORD` are needed only for the contact form to send email (messages are always saved to Admin → Messages); see `EMAIL_SETUP.md`.
 
 Optionally, set `NEXT_PUBLIC_SITE_URL=https://your-production-domain.com` to control the canonical URL used in SEO metadata, `sitemap.xml`, and `robots.txt` (`app/layout.tsx`, `app/sitemap.ts`, `app/robots.ts`) — it defaults to a placeholder domain if unset.
 
@@ -181,7 +185,7 @@ Ensure all environment variables from `.env.local` are added to your hosting pro
 - Secure file storage with Supabase
 
 ### Email Notifications
-- Contact form submissions sent via Resend to mohammad.sarowar06@gmail.com
+- Contact form submissions emailed through Gmail SMTP (App Password) to `CONTACT_TO`, or `GMAIL_USER` if unset
 
 ## 📚 Documentation
 

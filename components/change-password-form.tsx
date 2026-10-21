@@ -100,7 +100,7 @@ export function ChangePasswordForm() {
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Use at least 8 characters. You'll stay signed in on this device after changing your password.
+            Use at least 8 characters. You&apos;ll stay signed in on this device after changing your password.
           </p>
 
           <Button type="submit" className="bg-primary hover:bg-primary-dark" disabled={loading}>

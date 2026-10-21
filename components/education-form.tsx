@@ -12,6 +12,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
+import { EntryLogoField, EntryMediaEditor } from "@/components/entry-media-editor"
+import { type EntryMediaItem, parseEntryMedia } from "@/lib/entry-media"
 
 interface EducationFormProps {
   education?: any
@@ -22,6 +24,8 @@ export function EducationForm({ education }: EducationFormProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { toast } = useToast()
+  const [logoUrl, setLogoUrl] = useState<string>(education?.logo_url || "")
+  const [media, setMedia] = useState<EntryMediaItem[]>(parseEntryMedia(education?.media))
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -53,6 +57,9 @@ export function EducationForm({ education }: EducationFormProps) {
       location: formData.get("location") as string,
       achievements: formData.get("achievements") as string,
       status: formData.get("status") as string,
+      logo_url: logoUrl || null,
+      website_url: (formData.get("website_url") as string) || null,
+      media: media.filter((item) => item.url),
     }
 
     try {
@@ -205,6 +212,15 @@ export function EducationForm({ education }: EducationFormProps) {
               placeholder="List your achievements"
             />
           </div>
+
+          <EntryLogoField
+            logoUrl={logoUrl}
+            onLogoChange={setLogoUrl}
+            websiteUrl={education?.website_url}
+            websiteLabel="Institution Website"
+          />
+
+          <EntryMediaEditor value={media} onChange={setMedia} hint="Campus snapshots, certificates/transcripts and related links, shown under this education entry like on LinkedIn." />
 
           <div className="flex gap-3">
             <Button type="submit" className="bg-primary hover:bg-primary-dark" disabled={loading}>
