@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { HeroSlideForm } from "@/components/hero-slide-form"
-import { MAX_HERO_SLIDES } from "@/lib/hero-slides"
+import { INTRODUCTION_SLIDE, MAX_HERO_SLIDES, getOrderedHeroSlides, heroSlideTitle } from "@/lib/hero-slides"
 
 export default async function NewHeroSlide() {
   const supabase = await createClient()
@@ -14,9 +14,9 @@ export default async function NewHeroSlide() {
     redirect("/auth/login")
   }
 
-  const { count } = await supabase.from("hero_slides").select("*", { count: "exact", head: true })
+  const slides = await getOrderedHeroSlides(supabase)
 
-  if ((count ?? 0) >= MAX_HERO_SLIDES) {
+  if (slides.filter((slide) => slide.slide_type !== INTRODUCTION_SLIDE).length >= MAX_HERO_SLIDES) {
     redirect("/admin/hero-slides")
   }
 
@@ -27,7 +27,7 @@ export default async function NewHeroSlide() {
         <p className="text-muted-foreground mt-1">Choose a section to highlight in the homepage slider</p>
       </div>
 
-      <HeroSlideForm />
+      <HeroSlideForm siblings={slides.map((slide) => ({ id: slide.id as string, title: heroSlideTitle(slide) }))} />
     </div>
   )
 }

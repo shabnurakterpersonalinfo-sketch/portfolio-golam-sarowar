@@ -51,7 +51,13 @@ import { EntryLogo, EntryOrgLink } from "@/components/entry-logo"
 import { EntryMedia } from "@/components/entry-media"
 import { parseEntryMedia } from "@/lib/entry-media"
 import { HeroSummarySlide } from "@/components/hero-summary-slide"
-import { HERO_SLIDE_TYPES, getHeroSlideItems } from "@/lib/hero-slides"
+import {
+  HERO_SLIDE_TYPES,
+  INTRODUCTION_LABEL,
+  INTRODUCTION_SLIDE,
+  getHeroSlideItems,
+  type HeroSlideItem,
+} from "@/lib/hero-slides"
 
 const heroSlideIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   experiences: Briefcase,
@@ -63,6 +69,19 @@ const heroSlideIcons: Record<string, React.ComponentType<{ className?: string }>
   volunteering: Heart,
   gallery: ImageIcon,
 }
+
+type HeroSlideView =
+  | { kind: "intro"; id: string; heading: string }
+  | {
+      kind: "section"
+      id: string
+      slideType: string
+      eyebrow: string
+      heading: string
+      subheading: string
+      href: string
+      items: HeroSlideItem[]
+    }
 
 const categoryIcons = {
   Interpersonal: Users,
@@ -120,29 +139,47 @@ export default async function Home() {
   const { data: heroSlideRows } = await supabase
     .from("hero_slides")
     .select("*")
-    .eq("is_active", true)
     .order("display_order", { ascending: true })
     .order("created_at", { ascending: true })
 
+  // The Introduction is a row too (so it can be moved or hidden); if the round-2
+  // migration hasn't run yet there is no such row, so it is shown first.
+  const orderedSlideRows: any[] = heroSlideRows || []
+  if (!orderedSlideRows.some((row) => row.slide_type === INTRODUCTION_SLIDE)) {
+    orderedSlideRows.unshift({ id: INTRODUCTION_SLIDE, slide_type: INTRODUCTION_SLIDE, is_active: true })
+  }
+
   const heroSlides = (
     await Promise.all(
-      (heroSlideRows || []).map(async (row: any) => {
-        const config = HERO_SLIDE_TYPES[row.slide_type]
-        if (!config) return null
-        const items = await getHeroSlideItems(supabase, row.slide_type, row.item_limit || 3)
-        if (items.length === 0) return null
-        return {
-          id: row.id as string,
-          slideType: row.slide_type as string,
-          eyebrow: config.label,
-          heading: (row.heading as string) || config.defaultHeading,
-          subheading: (row.subheading as string) || config.defaultSubheading,
-          href: config.href,
-          items,
-        }
-      }),
+      orderedSlideRows
+        .filter((row) => row.is_active)
+        .map(async (row: any) => {
+          if (row.slide_type === INTRODUCTION_SLIDE) {
+            return { kind: "intro", id: row.id as string, heading: INTRODUCTION_LABEL } as HeroSlideView
+          }
+          const config = HERO_SLIDE_TYPES[row.slide_type]
+          if (!config) return null
+          const itemIds = row.selection_mode === "selected" ? row.item_ids : null
+          const items = await getHeroSlideItems(supabase, row.slide_type, row.item_limit || 3, itemIds)
+          if (items.length === 0) return null
+          return {
+            kind: "section",
+            id: row.id as string,
+            slideType: row.slide_type as string,
+            eyebrow: config.label,
+            heading: (row.heading as string) || config.defaultHeading,
+            subheading: (row.subheading as string) || config.defaultSubheading,
+            href: config.href,
+            items,
+          } as HeroSlideView
+        }),
     )
-  ).filter((slide) => slide !== null)
+  ).filter((slide): slide is HeroSlideView => slide !== null)
+
+  // Never leave the hero empty: if every slide is hidden, show the Introduction.
+  if (heroSlides.length === 0) {
+    heroSlides.push({ kind: "intro", id: INTRODUCTION_SLIDE, heading: INTRODUCTION_LABEL })
+  }
 
   const researchExperiences = experiences?.filter((exp: any) => exp.category === "Research") || []
   const industryExperiences = experiences?.filter((exp: any) => exp.category === "Industry") || []
@@ -195,6 +232,58 @@ export default async function Home() {
     { key: "languages", label: "Languages", items: groupedSkills?.Languages || [] },
   ].filter((tab) => tab.items.length > 0)
 
+  const introSlide = (
+    <div className="h-full flex items-center px-4 sm:px-6 lg:px-8 pt-12 pb-24 sm:pt-16 md:pt-20 lg:pt-24">
+      <div className="mx-auto max-w-7xl w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
+          <div className="order-2 lg:order-1 space-y-4 sm:space-y-6 text-center lg:text-left animate-slide-from-left">
+            <div>
+              <p className="text-sm sm:text-base text-muted-foreground mb-2">Welcome to my portfolio</p>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-primary mb-3 sm:mb-4 leading-tight">
+                {profile?.full_name || "Mohammad Golam Sarowar"}
+              </h1>
+              <p className="text-lg sm:text-xl md:text-2xl text-foreground/80 mb-4 sm:mb-6">
+                {profile?.title || "Network Engineer & Researcher"}
+              </p>
+              <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
+                {profile?.bio ||
+                  "Network Engineer and Researcher specializing in Core IP Networks, Distributed Systems, IoT, AI/ML, and Federated Learning for secure, reliable digital infrastructure."}
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
+              <ScrollButton targetId="contact">
+                <Button
+                  size="lg"
+                  className="bg-primary hover:bg-primary-dark text-white w-full sm:w-auto px-6 py-2.5 sm:px-8 sm:py-3 text-sm sm:text-base"
+                >
+                  <Mail className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                  Get in Touch
+                </Button>
+              </ScrollButton>
+              <DownloadCVButton cvUrl={profile?.cv_url} />
+            </div>
+          </div>
+
+          <div className="order-1 lg:order-2 flex justify-center animate-slide-from-right">
+            <div className="relative w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 lg:w-80 lg:h-80 group">
+              <div className="absolute inset-0 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-all duration-500"></div>
+              <div className="relative w-full h-full rounded-full overflow-hidden border-4 sm:border-8 border-primary shadow-2xl transition-all duration-500 hover:scale-105 hover:shadow-primary/50">
+                <Image
+                  src={profile?.profile_image || "/placeholder.svg?height=400&width=400"}
+                  alt={profile?.full_name || "Mohammad Golam Sarowar"}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  priority
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
@@ -203,67 +292,24 @@ export default async function Home() {
           id="home"
           className="relative bg-gradient-to-br from-white via-primary-light/30 to-white"
         >
-          <HeroSlider labels={["Introduction", ...heroSlides.map((slide) => slide.heading)]}>
-            <div className="h-full flex items-center px-4 sm:px-6 lg:px-8 pt-12 pb-24 sm:pt-16 md:pt-20 lg:pt-24">
-              <div className="mx-auto max-w-7xl w-full">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
-                  <div className="order-2 lg:order-1 space-y-4 sm:space-y-6 text-center lg:text-left animate-slide-from-left">
-                    <div>
-                      <p className="text-sm sm:text-base text-muted-foreground mb-2">Welcome to my portfolio</p>
-                      <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-primary mb-3 sm:mb-4 leading-tight">
-                        {profile?.full_name || "Mohammad Golam Sarowar"}
-                      </h1>
-                      <p className="text-lg sm:text-xl md:text-2xl text-foreground/80 mb-4 sm:mb-6">
-                        {profile?.title || "Network Engineer & Researcher"}
-                      </p>
-                      <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
-                        {profile?.bio ||
-                          "Network Engineer and Researcher specializing in Core IP Networks, Distributed Systems, IoT, AI/ML, and Federated Learning for secure, reliable digital infrastructure."}
-                      </p>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
-                      <ScrollButton targetId="contact">
-                        <Button
-                          size="lg"
-                          className="bg-primary hover:bg-primary-dark text-white w-full sm:w-auto px-6 py-2.5 sm:px-8 sm:py-3 text-sm sm:text-base"
-                        >
-                          <Mail className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                          Get in Touch
-                        </Button>
-                      </ScrollButton>
-                      <DownloadCVButton cvUrl={profile?.cv_url} />
-                    </div>
-                  </div>
-
-                  <div className="order-1 lg:order-2 flex justify-center animate-slide-from-right">
-                    <div className="relative w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 lg:w-80 lg:h-80 group">
-                      <div className="absolute inset-0 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-all duration-500"></div>
-                      <div className="relative w-full h-full rounded-full overflow-hidden border-4 sm:border-8 border-primary shadow-2xl transition-all duration-500 hover:scale-105 hover:shadow-primary/50">
-                        <Image
-                          src={profile?.profile_image || "/placeholder.svg?height=400&width=400"}
-                          alt={profile?.full_name || "Mohammad Golam Sarowar"}
-                          fill
-                          className="object-cover transition-transform duration-500 group-hover:scale-110"
-                          priority
-                        />
-                      </div>
-                    </div>
-                  </div>
+          <HeroSlider labels={heroSlides.map((slide) => slide.heading)}>
+            {heroSlides.map((slide) =>
+              slide.kind === "intro" ? (
+                <div key={slide.id} className="h-full">
+                  {introSlide}
                 </div>
-              </div>
-            </div>
-            {heroSlides.map((slide) => (
-              <HeroSummarySlide
-                key={slide.id}
-                eyebrow={slide.eyebrow}
-                heading={slide.heading}
-                subheading={slide.subheading}
-                href={slide.href}
-                items={slide.items}
-                fallbackIcon={heroSlideIcons[slide.slideType] || Award}
-              />
-            ))}
+              ) : (
+                <HeroSummarySlide
+                  key={slide.id}
+                  eyebrow={slide.eyebrow}
+                  heading={slide.heading}
+                  subheading={slide.subheading}
+                  href={slide.href}
+                  items={slide.items}
+                  fallbackIcon={heroSlideIcons[slide.slideType] || Award}
+                />
+              ),
+            )}
           </HeroSlider>
         </section>
 

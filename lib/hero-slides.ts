@@ -4,6 +4,13 @@
 
 export const MAX_HERO_SLIDES = 5
 
+// The name/title/bio/photo slide. It is a hero_slides row so it can be hidden or
+// moved, but it has no section data and never counts toward MAX_HERO_SLIDES.
+export const INTRODUCTION_SLIDE = "introduction"
+export const INTRODUCTION_LABEL = "Introduction"
+
+export const MAX_SLIDE_ITEMS = 4
+
 export interface HeroSlideItem {
   id: string
   title: string
@@ -114,10 +121,51 @@ export const HERO_SLIDE_TYPES: Record<string, HeroSlideTypeConfig> = {
   },
 }
 
-// Latest entries first (LIFO): the most recently added record leads the slide.
-export async function getHeroSlideItems(supabase: any, slideType: string, limit: number) {
+export function heroSlideTitle(slide: { slide_type: string; heading?: string | null }) {
+  if (slide.slide_type === INTRODUCTION_SLIDE) return INTRODUCTION_LABEL
+  return slide.heading || HERO_SLIDE_TYPES[slide.slide_type]?.defaultHeading || slide.slide_type
+}
+
+// "Slide 3, after Experience": a position label the admin can read, given the
+// titles of the other slides in their current order.
+export function heroSlidePositionLabel(index: number, otherTitles: string[]) {
+  const total = otherTitles.length + 1
+  if (index === 0) return total === 1 ? "Slide 1 (only slide)" : "Slide 1 (first)"
+  const after = `after "${otherTitles[index - 1]}"`
+  return index === total - 1 ? `Slide ${index + 1} (last, ${after})` : `Slide ${index + 1} (${after})`
+}
+
+// Rewrites display_order as 0..n-1 following the given id order.
+export async function saveHeroSlideOrder(supabase: any, orderedIds: string[]) {
+  const results = await Promise.all(
+    orderedIds.map((id, index) => supabase.from("hero_slides").update({ display_order: index }).eq("id", id)),
+  )
+  const failed = results.find((result: any) => result.error)
+  if (failed) throw failed.error
+}
+
+// Entries a slide can be built from, for the admin's "choose specific entries"
+// dropdown: newest first, labelled with each entry's heading text.
+export async function getHeroSlideOptions(supabase: any, slideType: string) {
   const config = HERO_SLIDE_TYPES[slideType]
   if (!config) return []
+
+  const { data } = await supabase.from(config.table).select("*").order("created_at", { ascending: false })
+
+  return (data || []).map(config.toItem) as HeroSlideItem[]
+}
+
+// Hand-picked entries in the order they were picked; otherwise the latest entries
+// first (LIFO): the most recently added record leads the slide.
+export async function getHeroSlideItems(supabase: any, slideType: string, limit: number, itemIds?: string[] | null) {
+  const config = HERO_SLIDE_TYPES[slideType]
+  if (!config) return []
+
+  if (itemIds && itemIds.length > 0) {
+    const { data } = await supabase.from(config.table).select("*").in("id", itemIds)
+    const byId = new Map((data || []).map((row: any) => [row.id, row]))
+    return itemIds.filter((id) => byId.has(id)).map((id) => config.toItem(byId.get(id))) as HeroSlideItem[]
+  }
 
   const { data } = await supabase
     .from(config.table)
@@ -126,4 +174,14 @@ export async function getHeroSlideItems(supabase: any, slideType: string, limit:
     .limit(limit)
 
   return (data || []).map(config.toItem) as HeroSlideItem[]
+}
+
+// All hero_slides rows (Introduction included) in slider order.
+export async function getOrderedHeroSlides(supabase: any) {
+  const { data } = await supabase
+    .from("hero_slides")
+    .select("*")
+    .order("display_order", { ascending: true })
+    .order("created_at", { ascending: true })
+  return (data || []) as any[]
 }

@@ -1,165 +1,51 @@
-# Contact Form Email Setup Guide
+# Contact Form Email Setup (Gmail App Password)
 
-This project includes a fully functional contact form that sends emails to **mohammad.sarowar06@gmail.com** when users submit messages through either the contact page (`/contact`) or the home page contact section.
+The contact form (`/contact` and the homepage contact section) saves every message to the
+`contact_messages` table (visible in **Admin → Messages**) and then emails a notification
+through Gmail SMTP using a Google **App Password**. Sending is done with `nodemailer` in
+`lib/mail.ts`; the API route is `app/api/contact/route.ts`.
 
-## Features
+If Gmail isn't configured, the message is still saved in the admin panel; only the email is skipped.
 
-- ✅ Professional email delivery via Resend
-- ✅ Beautiful HTML email template
-- ✅ Form validation and error handling
-- ✅ Loading states and success/error notifications
-- ✅ Works on both Contact page and Home page
-- ✅ Free tier: 100 emails per day, 3,000 per month
+## 1. Create a Google App Password
 
-## Setup Instructions
+App Passwords only work on a Google account with **2-Step Verification** turned on.
 
-### 1. Get a Resend API Key
+1. Sign in to the Gmail account that will send the notifications.
+2. Turn on 2-Step Verification: <https://myaccount.google.com/signinoptions/twosv>
+3. Open <https://myaccount.google.com/apppasswords>
+4. Enter a name (e.g. "Portfolio contact form") and click **Create**.forwarder
+5. Copy the 16-character password Google shows (spaces don't matter). You can't view it again later.
 
-1. Visit [https://resend.com/signup](https://resend.com/signup)
-2. Sign up for a free account
-3. Once logged in, go to **API Keys** section
-4. Click **Create API Key**
-5. Give it a name (e.g., "Portfolio Contact Form")
-6. Copy the API key (starts with `re_...`)
+## 2. Set the environment variables
 
-### 2. Add Environment Variable
+| Variable | Required | Value |
+| --- | --- | --- |
+| `GMAIL_USER` | Yes | The Gmail address that sends the email, e.g. `mohammad.sarowar06@gmail.com` |
+| `GMAIL_APP_PASSWORD` | Yes | The 16-character App Password from step 1 |
+| `CONTACT_TO` | No | Where notifications go. Defaults to `GMAIL_USER` |
+| `CONTACT_FROM_NAME` | No | Sender display name. Defaults to "Mohammad Golam Sarowar" |
 
-Add your Resend API key to your project:
+**Local:** add them to `.env.local`.
 
-**Option A: Via v0 Interface**
-1. Click the **Vars** section in the in-chat sidebar
-2. Add the environment variable:
-   - **Key**: `RESEND_API_KEY`
-   - **Value**: Your Resend API key (starts with `re_...`)
+**Vercel:** Project → **Settings → Environment Variables**, add the variables for Production
+(and Preview if you want), then **redeploy** so the new values are picked up.
 
-**Option B: Via Vercel Dashboard**
-1. Go to your Vercel project dashboard
-2. Navigate to **Settings** → **Environment Variables**
-3. Add a new variable:
-   - **Name**: `RESEND_API_KEY`
-   - **Value**: Your Resend API key
-4. Click **Save**
+`RESEND_API_KEY` is no longer used and can be deleted from Vercel.
 
-### 3. Test the Contact Form
+## 3. Test
 
-1. Visit your deployed site or preview
-2. Navigate to the **Contact** page or scroll to the contact section on the home page
-3. Fill out the form with:
-   - Your name
-   - Your email address
-   - A test message
-4. Click **Submit Form**
-5. Check the inbox at **mohammad.sarowar06@gmail.com** for the email
-
-## Email Details
-
-The email sent includes:
-
-- **Subject**: "New Contact Form Submission - Mohammad Golam Sarowar Portfolio"
-- **From**: Portfolio Contact <onboarding@resend.dev>
-- **To**: mohammad.sarowar06@gmail.com
-- **Content**: Professional HTML template with:
-  - Sender's full name
-  - Sender's email address
-  - Message content
-
-## Important Notes
-
-### Why use onboarding@resend.dev?
-
-Resend's test email `onboarding@resend.dev` is pre-verified and works immediately without domain setup. This means:
-
-- ✅ Works right away with just an API key
-- ✅ No domain verification needed
-- ✅ Perfect for portfolios and small projects
-
-### Want to use a custom domain?
-
-If you want emails to come from your own domain (e.g., `contact@yourdomain.com`):
-
-1. Add your domain in Resend dashboard
-2. Verify DNS records
-3. Update the `from` field in `/app/api/contact/route.ts`
-
-## Component Structure
-
-- **`/app/api/contact/route.ts`** - API route handler that sends emails via Resend
-- **`/components/contact-form.tsx`** - Reusable contact form component with state management
-- **`/app/contact/page.tsx`** - Contact page using ContactForm component
-- **`/app/page.tsx`** - Home page with embedded ContactForm component
+1. Open the site and submit the contact form with your own email address.
+2. The notification arrives at `CONTACT_TO` (or `GMAIL_USER`). Clicking **Reply** answers the visitor
+   directly, because the email's Reply-To is set to the visitor's address.
+3. The message also appears in **Admin → Messages**.
 
 ## Troubleshooting
 
-### Email not sending?
-
-1. **Check API key**: Verify `RESEND_API_KEY` is set correctly in environment variables
-2. **Check console**: Look for error logs in the browser developer console
-3. **Check spam folder**: Initial emails might land in spam
-4. **Verify Resend account**: Make sure your Resend account is active
-
-### "403 validation_error" - Domain not verified?
-
-This happens if you try to send from an unverified custom domain. Solution:
-- Use `onboarding@resend.dev` as the `from` address (already set)
-- Or verify your custom domain in Resend dashboard
-
-### Form not submitting?
-
-1. **Check network tab**: Look for failed API requests to `/api/contact`
-2. **Verify all fields**: Ensure name, email, and message are filled
-3. **Check browser console**: Look for JavaScript errors
-
-### Rate limiting?
-
-Resend free tier includes:
-- 100 emails per day
-- 3,000 emails per month
-
-For higher volumes, upgrade at [resend.com/pricing](https://resend.com/pricing)
-
-## Customization
-
-### Change recipient email
-
-Edit `/app/api/contact/route.ts`:
-
-\`\`\`typescript
-to: "newemail@example.com",
-\`\`\`
-
-### Customize email subject
-
-Edit `/app/api/contact/route.ts`:
-
-\`\`\`typescript
-subject: "Your Custom Subject Line",
-\`\`\`
-
-### Add more form fields
-
-Update `/components/contact-form.tsx`:
-
-1. Add new field to `formData` state
-2. Add input element in the form
-3. Update API route to include new field in the request body
-
-## Why Resend?
-
-- **Modern API** - Clean, simple, developer-friendly
-- **Reliable delivery** - High deliverability rates
-- **Beautiful emails** - Full HTML support
-- **Free tier** - Generous for portfolio sites
-- **Great documentation** - Easy to integrate and customize
-
-## Security Notes
-
-- API key is stored in environment variables (never committed to code)
-- Form includes validation on both client and server
-- Resend provides built-in spam protection
-- Rate limiting prevents abuse
-
-## Support
-
-For issues with:
-- **Resend service**: Visit [resend.com/support](https://resend.com/support)
-- **v0 deployment**: Contact Vercel support at vercel.com/help
+- **`Invalid login` / `535-5.7.8 Username and Password not accepted`**: the App Password is wrong or was
+  revoked, `GMAIL_USER` doesn't match the account that created it, or 2-Step Verification is off.
+  Create a new App Password and update the variable.
+- **No email, but the message is in Admin → Messages**: check the Vercel function logs for
+  `[contact] Email not sent:`; usually a missing variable or a deploy made before the variables were added.
+- **Email in spam**: mark it "Not spam" once; Gmail learns quickly since it is sent from your own account.
+- **Limits**: a normal Gmail account can send about 500 emails a day, far more than a portfolio needs.

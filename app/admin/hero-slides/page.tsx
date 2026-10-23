@@ -2,9 +2,10 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Plus, Pencil, Presentation } from "lucide-react"
+import { Plus, Presentation } from "lucide-react"
 import Link from "next/link"
-import { HERO_SLIDE_TYPES, MAX_HERO_SLIDES } from "@/lib/hero-slides"
+import { HeroSlideList } from "@/components/hero-slide-list"
+import { INTRODUCTION_SLIDE, MAX_HERO_SLIDES, getOrderedHeroSlides } from "@/lib/hero-slides"
 
 export default async function AdminHeroSlides() {
   const supabase = await createClient()
@@ -17,14 +18,10 @@ export default async function AdminHeroSlides() {
     redirect("/auth/login")
   }
 
-  const { data: slides } = await supabase
-    .from("hero_slides")
-    .select("*")
-    .order("display_order", { ascending: true })
-    .order("created_at", { ascending: true })
-
-  const count = slides?.length ?? 0
-  const canAdd = count < MAX_HERO_SLIDES
+  const slides = await getOrderedHeroSlides(supabase)
+  const sectionSlideCount = slides.filter((slide) => slide.slide_type !== INTRODUCTION_SLIDE).length
+  const hasIntroduction = slides.length > sectionSlideCount
+  const canAdd = sectionSlideCount < MAX_HERO_SLIDES
 
   return (
     <div className="space-y-6">
@@ -32,8 +29,8 @@ export default async function AdminHeroSlides() {
         <div>
           <h1 className="text-3xl font-bold text-primary">Hero Slides</h1>
           <p className="text-muted-foreground mt-1">
-            Slide 1 is always your introduction. Add up to {MAX_HERO_SLIDES} more slides that highlight a section
-            ({count}/{MAX_HERO_SLIDES} used).
+            Drag slides to change their order, or use the arrows. Add up to {MAX_HERO_SLIDES} section slides (
+            {sectionSlideCount}/{MAX_HERO_SLIDES} used).
           </p>
         </div>
         {canAdd ? (
@@ -50,56 +47,28 @@ export default async function AdminHeroSlides() {
         )}
       </div>
 
-      <div className="space-y-4">
-        <Card className="border-l-4 border-primary/40 bg-muted/30">
-          <CardContent className="p-6 flex items-center gap-4">
-            <span className="text-sm font-bold text-muted-foreground w-6">1</span>
-            <div>
-              <h3 className="text-lg font-bold text-foreground">Introduction</h3>
-              <p className="text-sm text-muted-foreground">Name, title, bio and photo from your Profile. Always first.</p>
-            </div>
+      {!hasIntroduction && (
+        <Card className="border-amber-300 bg-amber-50">
+          <CardContent className="p-4 text-sm text-amber-900">
+            The Introduction slide can&apos;t be moved or hidden yet. Run the
+            <code className="mx-1">20261023000000_hero_slides_selection_and_intro.sql</code>
+            migration in Supabase to enable it. Until then it always shows first.
           </CardContent>
         </Card>
+      )}
 
-        {slides?.map((slide, index) => {
-          const type = HERO_SLIDE_TYPES[slide.slide_type]
-          return (
-            <Card key={slide.id} className="border-l-4 border-primary">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start gap-4">
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm font-bold text-muted-foreground w-6">{index + 2}</span>
-                    <div>
-                      <h3 className="text-lg font-bold text-foreground">{slide.heading || type?.defaultHeading}</h3>
-                      <p className="text-sm text-primary font-medium mt-1">
-                        {type?.label ?? slide.slide_type} · latest {slide.item_limit} entries
-                      </p>
-                      {!slide.is_active && <p className="text-sm text-muted-foreground mt-1">Hidden</p>}
-                    </div>
-                  </div>
-                  <Button asChild size="sm" variant="outline">
-                    <Link href={`/admin/hero-slides/${slide.id}`}>
-                      <Pencil className="h-4 w-4 mr-2" />
-                      Edit
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )
-        })}
-
-        {count === 0 && (
-          <Card>
-            <CardContent className="p-12 text-center space-y-2">
-              <Presentation className="h-8 w-8 text-primary mx-auto" />
-              <p className="text-muted-foreground">
-                No extra slides yet. Click &quot;Add Slide&quot; to highlight a section in the homepage hero.
-              </p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+      {slides.length > 0 ? (
+        <HeroSlideList initialSlides={slides} />
+      ) : (
+        <Card>
+          <CardContent className="p-12 text-center space-y-2">
+            <Presentation className="h-8 w-8 text-primary mx-auto" />
+            <p className="text-muted-foreground">
+              No extra slides yet. Click &quot;Add Slide&quot; to highlight a section in the homepage hero.
+            </p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

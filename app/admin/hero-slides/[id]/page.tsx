@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { HeroSlideForm } from "@/components/hero-slide-form"
+import { INTRODUCTION_SLIDE, getOrderedHeroSlides, heroSlideTitle } from "@/lib/hero-slides"
 
 export default async function EditHeroSlide({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -19,20 +20,29 @@ export default async function EditHeroSlide({ params }: { params: Promise<{ id: 
     redirect("/auth/login")
   }
 
-  const { data: slide } = await supabase.from("hero_slides").select("*").eq("id", id).single()
+  const slides = await getOrderedHeroSlides(supabase)
+  const position = slides.findIndex((slide) => slide.id === id)
 
-  if (!slide) {
+  if (position === -1) {
     redirect("/admin/hero-slides")
   }
+
+  const slide = slides[position]
+  const siblings = slides
+    .filter((other) => other.id !== id)
+    .map((other) => ({ id: other.id as string, title: heroSlideTitle(other) }))
+  const isIntroduction = slide.slide_type === INTRODUCTION_SLIDE
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-primary">Edit Hero Slide</h1>
-        <p className="text-muted-foreground mt-1">Update a homepage hero slide</p>
+        <h1 className="text-3xl font-bold text-primary">{isIntroduction ? "Introduction Slide" : "Edit Hero Slide"}</h1>
+        <p className="text-muted-foreground mt-1">
+          {isIntroduction ? "Show, hide or move your introduction slide" : "Update a homepage hero slide"}
+        </p>
       </div>
 
-      <HeroSlideForm slide={slide} />
+      <HeroSlideForm slide={{ ...slide, position }} siblings={siblings} />
     </div>
   )
 }
