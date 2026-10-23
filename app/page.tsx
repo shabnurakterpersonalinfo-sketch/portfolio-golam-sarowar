@@ -26,9 +26,11 @@ import {
   Phone,
   Facebook,
   Twitter,
-  ChevronDown,
   FileText,
   Quote,
+  Mic,
+  BadgeCheck,
+  Image as ImageIcon,
 } from "lucide-react"
 import {
   LinkedinIcon,
@@ -43,6 +45,43 @@ import Link from "next/link"
 import { ConferencePublicationSummary } from "@/components/conference-publication-summary"
 import { LinkPreview } from "@/components/link-preview"
 import { GalleryTeaser } from "@/components/gallery-teaser"
+import { HeroSlider } from "@/components/hero-slider"
+import { ExperienceCard } from "@/components/experience-card"
+import { EntryLogo, EntryOrgLink } from "@/components/entry-logo"
+import { EntryMedia } from "@/components/entry-media"
+import { parseEntryMedia } from "@/lib/entry-media"
+import { HeroSummarySlide } from "@/components/hero-summary-slide"
+import {
+  HERO_SLIDE_TYPES,
+  INTRODUCTION_LABEL,
+  INTRODUCTION_SLIDE,
+  getHeroSlideItems,
+  type HeroSlideItem,
+} from "@/lib/hero-slides"
+
+const heroSlideIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+  experiences: Briefcase,
+  education: School,
+  publications: BookOpen,
+  awards: Award,
+  scholarly_activities: Mic,
+  certifications: BadgeCheck,
+  volunteering: Heart,
+  gallery: ImageIcon,
+}
+
+type HeroSlideView =
+  | { kind: "intro"; id: string; heading: string }
+  | {
+      kind: "section"
+      id: string
+      slideType: string
+      eyebrow: string
+      heading: string
+      subheading: string
+      href: string
+      items: HeroSlideItem[]
+    }
 
 const categoryIcons = {
   Interpersonal: Users,
@@ -97,6 +136,51 @@ export default async function Home() {
     .select("*")
     .order("display_order", { ascending: true })
 
+  const { data: heroSlideRows } = await supabase
+    .from("hero_slides")
+    .select("*")
+    .order("display_order", { ascending: true })
+    .order("created_at", { ascending: true })
+
+  // The Introduction is a row too (so it can be moved or hidden); if the round-2
+  // migration hasn't run yet there is no such row, so it is shown first.
+  const orderedSlideRows: any[] = heroSlideRows || []
+  if (!orderedSlideRows.some((row) => row.slide_type === INTRODUCTION_SLIDE)) {
+    orderedSlideRows.unshift({ id: INTRODUCTION_SLIDE, slide_type: INTRODUCTION_SLIDE, is_active: true })
+  }
+
+  const heroSlides = (
+    await Promise.all(
+      orderedSlideRows
+        .filter((row) => row.is_active)
+        .map(async (row: any) => {
+          if (row.slide_type === INTRODUCTION_SLIDE) {
+            return { kind: "intro", id: row.id as string, heading: INTRODUCTION_LABEL } as HeroSlideView
+          }
+          const config = HERO_SLIDE_TYPES[row.slide_type]
+          if (!config) return null
+          const itemIds = row.selection_mode === "selected" ? row.item_ids : null
+          const items = await getHeroSlideItems(supabase, row.slide_type, row.item_limit || 3, itemIds)
+          if (items.length === 0) return null
+          return {
+            kind: "section",
+            id: row.id as string,
+            slideType: row.slide_type as string,
+            eyebrow: config.label,
+            heading: (row.heading as string) || config.defaultHeading,
+            subheading: (row.subheading as string) || config.defaultSubheading,
+            href: config.href,
+            items,
+          } as HeroSlideView
+        }),
+    )
+  ).filter((slide): slide is HeroSlideView => slide !== null)
+
+  // Never leave the hero empty: if every slide is hidden, show the Introduction.
+  if (heroSlides.length === 0) {
+    heroSlides.push({ kind: "intro", id: INTRODUCTION_SLIDE, heading: INTRODUCTION_LABEL })
+  }
+
   const researchExperiences = experiences?.filter((exp: any) => exp.category === "Research") || []
   const industryExperiences = experiences?.filter((exp: any) => exp.category === "Industry") || []
 
@@ -148,71 +232,85 @@ export default async function Home() {
     { key: "languages", label: "Languages", items: groupedSkills?.Languages || [] },
   ].filter((tab) => tab.items.length > 0)
 
+  const introSlide = (
+    <div className="h-full flex items-center px-4 sm:px-6 lg:px-8 pt-12 pb-24 sm:pt-16 md:pt-20 lg:pt-24">
+      <div className="mx-auto max-w-7xl w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
+          <div className="order-2 lg:order-1 space-y-4 sm:space-y-6 text-center lg:text-left animate-slide-from-left">
+            <div>
+              <p className="text-sm sm:text-base text-muted-foreground mb-2">Welcome to my portfolio</p>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-primary mb-3 sm:mb-4 leading-tight">
+                {profile?.full_name || "Mohammad Golam Sarowar"}
+              </h1>
+              <p className="text-lg sm:text-xl md:text-2xl text-foreground/80 mb-4 sm:mb-6">
+                {profile?.title || "Network Engineer & Researcher"}
+              </p>
+              <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
+                {profile?.bio ||
+                  "Network Engineer and Researcher specializing in Core IP Networks, Distributed Systems, IoT, AI/ML, and Federated Learning for secure, reliable digital infrastructure."}
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
+              <ScrollButton targetId="contact">
+                <Button
+                  size="lg"
+                  className="bg-primary hover:bg-primary-dark text-white w-full sm:w-auto px-6 py-2.5 sm:px-8 sm:py-3 text-sm sm:text-base"
+                >
+                  <Mail className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                  Get in Touch
+                </Button>
+              </ScrollButton>
+              <DownloadCVButton cvUrl={profile?.cv_url} />
+            </div>
+          </div>
+
+          <div className="order-1 lg:order-2 flex justify-center animate-slide-from-right">
+            <div className="relative w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 lg:w-80 lg:h-80 group">
+              <div className="absolute inset-0 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-all duration-500"></div>
+              <div className="relative w-full h-full rounded-full overflow-hidden border-4 sm:border-8 border-primary shadow-2xl transition-all duration-500 hover:scale-105 hover:shadow-primary/50">
+                <Image
+                  src={profile?.profile_image || "/placeholder.svg?height=400&width=400"}
+                  alt={profile?.full_name || "Mohammad Golam Sarowar"}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  priority
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
       <main className="overflow-x-hidden">
         <section
           id="home"
-          className="relative bg-gradient-to-br from-white via-primary-light/30 to-white py-12 sm:py-16 md:py-20 lg:py-24 px-4 sm:px-6 lg:px-8"
+          className="relative bg-gradient-to-br from-white via-primary-light/30 to-white"
         >
-          <div className="mx-auto max-w-7xl">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
-              <div className="order-2 lg:order-1 space-y-4 sm:space-y-6 text-center lg:text-left animate-slide-from-left">
-                <div>
-                  <p className="text-sm sm:text-base text-muted-foreground mb-2">Welcome to my portfolio</p>
-                  <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-primary mb-3 sm:mb-4 leading-tight">
-                    {profile?.full_name || "Mohammad Golam Sarowar"}
-                  </h1>
-                  <p className="text-lg sm:text-xl md:text-2xl text-foreground/80 mb-4 sm:mb-6">
-                    {profile?.title || "Network Engineer & Researcher"}
-                  </p>
-                  <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
-                    {profile?.bio ||
-                      "Network Engineer and Researcher specializing in Core IP Networks, Distributed Systems, IoT, AI/ML, and Federated Learning for secure, reliable digital infrastructure."}
-                  </p>
+          <HeroSlider labels={heroSlides.map((slide) => slide.heading)}>
+            {heroSlides.map((slide) =>
+              slide.kind === "intro" ? (
+                <div key={slide.id} className="h-full">
+                  {introSlide}
                 </div>
-
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
-                  <ScrollButton targetId="contact">
-                    <Button
-                      size="lg"
-                      className="bg-primary hover:bg-primary-dark text-white w-full sm:w-auto px-6 py-2.5 sm:px-8 sm:py-3 text-sm sm:text-base"
-                    >
-                      <Mail className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                      Get in Touch
-                    </Button>
-                  </ScrollButton>
-                  <DownloadCVButton cvUrl={profile?.cv_url} />
-                </div>
-                <div className="pb-20 sm:pb-16 md:pb-12"></div>
-              </div>
-
-              <div className="order-1 lg:order-2 flex justify-center animate-slide-from-right">
-                <div className="relative w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 lg:w-80 lg:h-80 group">
-                  <div className="absolute inset-0 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-all duration-500"></div>
-                  <div className="relative w-full h-full rounded-full overflow-hidden border-4 sm:border-8 border-primary shadow-2xl transition-all duration-500 hover:scale-105 hover:shadow-primary/50">
-                    <Image
-                      src={profile?.profile_image || "/placeholder.svg?height=400&width=400"}
-                      alt={profile?.full_name || "Mohammad Golam Sarowar"}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-110"
-                      priority
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-            <ScrollButton targetId="education">
-              <button className="flex flex-col items-center gap-2 text-primary hover:text-primary-dark transition-colors">
-                <span className="text-sm font-medium">Scroll Down For More</span>
-                <ChevronDown className="h-6 w-6" />
-              </button>
-            </ScrollButton>
-          </div>
+              ) : (
+                <HeroSummarySlide
+                  key={slide.id}
+                  eyebrow={slide.eyebrow}
+                  heading={slide.heading}
+                  subheading={slide.subheading}
+                  href={slide.href}
+                  items={slide.items}
+                  fallbackIcon={heroSlideIcons[slide.slideType] || Award}
+                />
+              ),
+            )}
+          </HeroSlider>
         </section>
 
         {/* Education Section */}
@@ -225,41 +323,56 @@ export default async function Home() {
             </div>
 
             <div className="max-w-4xl mx-auto space-y-6">
-              {education?.map((edu: any) => (
-                <Card
-                  key={edu.id}
-                  className="border-l-4 border-primary hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-                >
-                  <CardContent className="p-8">
-                    <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-4">
-                      <h3 className="text-2xl font-bold text-primary">{edu.degree}</h3>
-                      <span className="text-sm font-semibold bg-primary text-white px-4 py-1.5 rounded-full whitespace-nowrap self-start">
-                        {edu.status}
-                      </span>
-                    </div>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3 text-foreground/80">
-                        <School className="h-5 w-5 text-primary flex-shrink-0" />
-                        <span className="font-semibold text-lg">
-                          {edu.institution}, {edu.location}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-4 text-base text-muted-foreground">
-                        <span className="font-medium">
-                          {edu.start_date} - {edu.end_date}
-                        </span>
-                        {edu.cgpa && <span className="font-bold text-primary text-lg">{edu.cgpa}</span>}
-                      </div>
-                      {edu.achievements && (
-                        <div className="mt-6 pt-6 border-t border-border">
-                          <p className="text-sm font-bold text-foreground mb-2">Core Courses:</p>
-                          <p className="text-base text-muted-foreground leading-relaxed">{edu.achievements}</p>
+              {education?.map((edu: any) => {
+                const media = parseEntryMedia(edu.media)
+                return (
+                  <Card
+                    key={edu.id}
+                    className="border-l-4 border-primary hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                  >
+                    <CardContent className="p-6 sm:p-8">
+                      <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
+                        <EntryLogo src={edu.logo_url} alt={edu.institution} fallbackIcon={School} />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-3 mb-3">
+                            <h3 className="text-xl sm:text-2xl font-bold text-primary">{edu.degree}</h3>
+                            <span className="text-sm font-semibold bg-primary text-white px-4 py-1.5 rounded-full whitespace-nowrap self-start">
+                              {edu.status}
+                            </span>
+                          </div>
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2 text-foreground/80">
+                              <EntryOrgLink
+                                name={[edu.institution, edu.location].filter(Boolean).join(", ")}
+                                url={edu.website_url}
+                                className="font-semibold text-base sm:text-lg"
+                              />
+                              {edu.website_url && <ExternalLink className="h-4 w-4 text-primary opacity-70" />}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-base text-muted-foreground">
+                              <span className="font-medium">
+                                {edu.start_date} - {edu.end_date}
+                              </span>
+                              {edu.cgpa && <span className="font-bold text-primary text-lg">{edu.cgpa}</span>}
+                            </div>
+                            {edu.achievements && (
+                              <div className="mt-5 pt-5 border-t border-border">
+                                <p className="text-sm font-bold text-foreground mb-2">Core Courses:</p>
+                                <p className="text-base text-muted-foreground leading-relaxed">{edu.achievements}</p>
+                              </div>
+                            )}
+                            {media.length > 0 && (
+                              <div className="mt-5 pt-5 border-t border-border">
+                                <EntryMedia items={media} entryTitle={`${edu.degree}, ${edu.institution}`} />
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
           </div>
         </section>
@@ -295,56 +408,7 @@ export default async function Home() {
               {researchExperiences.length > 0 && (
               <TabsContent value="research" className="space-y-6">
                 {researchExperiences.slice(0, maxItemsToShow).map((exp: any) => (
-                  <Card
-                    key={exp.id}
-                    className="border-l-4 border-primary hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-                  >
-                    <CardContent className="p-8">
-                      <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-6">
-                        <div className="flex-1">
-                          <h3 className="text-2xl font-bold text-foreground mb-3">{exp.position}</h3>
-                          <div className="flex items-center gap-3 text-primary font-semibold text-lg mb-2">
-                            <Briefcase className="h-5 w-5" />
-                            <span>{exp.organization}</span>
-                          </div>
-                          {exp.project_name && (
-                            <p className="text-base text-muted-foreground">
-                              <span className="font-semibold text-foreground">Project:</span> {exp.project_name}
-                            </p>
-                          )}
-                        </div>
-                        <span className="text-sm font-semibold bg-primary text-white px-4 py-1.5 rounded-full whitespace-nowrap self-start">
-                          {exp.employment_type}
-                        </span>
-                      </div>
-
-                      <div className="flex flex-wrap gap-6 text-base text-muted-foreground mb-6">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-5 w-5" />
-                          <span className="font-medium">
-                            {exp.start_date} - {exp.end_date}
-                          </span>
-                        </div>
-                        {exp.location && (
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-5 w-5" />
-                            <span>{exp.location}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {exp.responsibilities && exp.responsibilities.length > 0 && (
-                        <ul className="space-y-3">
-                          {exp.responsibilities.map((responsibility: any, index: number) => (
-                            <li key={index} className="flex gap-3 text-base">
-                              <span className="text-primary font-bold text-lg">•</span>
-                              <span className="text-muted-foreground leading-relaxed">{responsibility}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </CardContent>
-                  </Card>
+                  <ExperienceCard key={exp.id} exp={exp} />
                 ))}
                 {researchExperiences.length > maxItemsToShow && (
                   <div className="flex justify-center pt-4">
@@ -361,56 +425,7 @@ export default async function Home() {
               {industryExperiences.length > 0 && (
               <TabsContent value="industry" className="space-y-6">
                 {industryExperiences.slice(0, maxItemsToShow).map((exp: any) => (
-                  <Card
-                    key={exp.id}
-                    className="border-l-4 border-primary hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-                  >
-                    <CardContent className="p-8">
-                      <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-6">
-                        <div className="flex-1">
-                          <h3 className="text-2xl font-bold text-foreground mb-3">{exp.position}</h3>
-                          <div className="flex items-center gap-3 text-primary font-semibold text-lg mb-2">
-                            <Briefcase className="h-5 w-5" />
-                            <span>{exp.organization}</span>
-                          </div>
-                          {exp.project_name && (
-                            <p className="text-base text-muted-foreground">
-                              <span className="font-semibold text-foreground">Project:</span> {exp.project_name}
-                            </p>
-                          )}
-                        </div>
-                        <span className="text-sm font-semibold bg-primary text-white px-4 py-1.5 rounded-full whitespace-nowrap self-start">
-                          {exp.employment_type}
-                        </span>
-                      </div>
-
-                      <div className="flex flex-wrap gap-6 text-base text-muted-foreground mb-6">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-5 w-5" />
-                          <span className="font-medium">
-                            {exp.start_date} - {exp.end_date}
-                          </span>
-                        </div>
-                        {exp.location && (
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-5 w-5" />
-                            <span>{exp.location}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {exp.responsibilities && exp.responsibilities.length > 0 && (
-                        <ul className="space-y-3">
-                          {exp.responsibilities.map((responsibility: any, index: number) => (
-                            <li key={index} className="flex gap-3 text-base">
-                              <span className="text-primary font-bold text-lg">•</span>
-                              <span className="text-muted-foreground leading-relaxed">{responsibility}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </CardContent>
-                  </Card>
+                  <ExperienceCard key={exp.id} exp={exp} />
                 ))}
                 {industryExperiences.length > maxItemsToShow && (
                   <div className="flex justify-center pt-8">
