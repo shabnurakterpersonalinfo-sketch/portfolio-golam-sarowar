@@ -11,6 +11,17 @@ export const INTRODUCTION_LABEL = "Introduction"
 
 export const MAX_SLIDE_ITEMS = 4
 
+// Seconds each slide stays on screen (profiles.hero_slide_interval_seconds). Used
+// until the round-3 migration has run, and the choices in the admin dropdown,
+// which must stay within the column's CHECK range (2-30).
+export const DEFAULT_HERO_SLIDE_SECONDS = 5
+export const HERO_SLIDE_SECONDS_OPTIONS = [3, 4, 5, 6, 8, 10, 12, 15, 20, 30]
+
+export function heroSlideIntervalMs(profile: { hero_slide_interval_seconds?: number | null } | null | undefined) {
+  const seconds = Number(profile?.hero_slide_interval_seconds)
+  return (Number.isFinite(seconds) && seconds >= 2 ? seconds : DEFAULT_HERO_SLIDE_SECONDS) * 1000
+}
+
 export interface HeroSlideItem {
   id: string
   title: string

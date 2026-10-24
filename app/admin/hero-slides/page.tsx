@@ -4,8 +4,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Plus, Presentation } from "lucide-react"
 import Link from "next/link"
-import { HeroSlideList } from "@/components/hero-slide-list"
-import { INTRODUCTION_SLIDE, MAX_HERO_SLIDES, getOrderedHeroSlides } from "@/lib/hero-slides"
+import { HeroSlideList, HeroSlideTiming } from "@/components/hero-slide-list"
+import { INTRODUCTION_SLIDE, MAX_HERO_SLIDES, getOrderedHeroSlides, heroSlideIntervalMs } from "@/lib/hero-slides"
 
 export default async function AdminHeroSlides() {
   const supabase = await createClient()
@@ -19,6 +19,8 @@ export default async function AdminHeroSlides() {
   }
 
   const slides = await getOrderedHeroSlides(supabase)
+  const { data: profile } = await supabase.from("profiles").select("*").maybeSingle()
+  const hasTimingColumn = !!profile && "hero_slide_interval_seconds" in profile
   const sectionSlideCount = slides.filter((slide) => slide.slide_type !== INTRODUCTION_SLIDE).length
   const hasIntroduction = slides.length > sectionSlideCount
   const canAdd = sectionSlideCount < MAX_HERO_SLIDES
@@ -53,6 +55,20 @@ export default async function AdminHeroSlides() {
             The Introduction slide can&apos;t be moved or hidden yet. Run the
             <code className="mx-1">20261023000000_hero_slides_selection_and_intro.sql</code>
             migration in Supabase to enable it. Until then it always shows first.
+          </CardContent>
+        </Card>
+      )}
+
+      {profile && hasTimingColumn && (
+        <HeroSlideTiming profileId={profile.id} initialSeconds={heroSlideIntervalMs(profile) / 1000} />
+      )}
+
+      {profile && !hasTimingColumn && (
+        <Card className="border-amber-300 bg-amber-50">
+          <CardContent className="p-4 text-sm text-amber-900">
+            The time per slide can&apos;t be changed yet. Run the
+            <code className="mx-1">20261024000000_hero_slider_interval.sql</code>
+            migration in Supabase to enable it. Until then each slide shows for 5 seconds.
           </CardContent>
         </Card>
       )}
