@@ -3,12 +3,20 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ArrowDown, ArrowUp, Eye, EyeOff, GripVertical, Pencil, UserRound } from "lucide-react"
+import { ArrowDown, ArrowUp, Eye, EyeOff, GripVertical, Pencil, Timer, UserRound } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { HERO_SLIDE_TYPES, INTRODUCTION_SLIDE, heroSlideTitle, saveHeroSlideOrder } from "@/lib/hero-slides"
+import {
+  HERO_SLIDE_SECONDS_OPTIONS,
+  HERO_SLIDE_TYPES,
+  INTRODUCTION_SLIDE,
+  heroSlideTitle,
+  saveHeroSlideOrder,
+} from "@/lib/hero-slides"
 
 function describe(slide: any) {
   if (slide.slide_type === INTRODUCTION_SLIDE) return "Name, title, bio and photo from your Profile"
@@ -167,5 +175,66 @@ export function HeroSlideList({ initialSlides }: { initialSlides: any[] }) {
         )
       })}
     </div>
+  )
+}
+
+// How long each slide stays on screen before the homepage slider moves on. Saved
+// straight away to profiles.hero_slide_interval_seconds.
+export function HeroSlideTiming({ profileId, initialSeconds }: { profileId: string; initialSeconds: number }) {
+  const router = useRouter()
+  const { toast } = useToast()
+  const [seconds, setSeconds] = useState(String(initialSeconds))
+  const [saving, setSaving] = useState(false)
+
+  const options = HERO_SLIDE_SECONDS_OPTIONS.includes(initialSeconds)
+    ? HERO_SLIDE_SECONDS_OPTIONS
+    : [...HERO_SLIDE_SECONDS_OPTIONS, initialSeconds].sort((a, b) => a - b)
+
+  const save = async (value: string) => {
+    const previous = seconds
+    setSeconds(value)
+    setSaving(true)
+    const { error } = await createClient()
+      .from("profiles")
+      .update({ hero_slide_interval_seconds: Number(value) })
+      .eq("id", profileId)
+    setSaving(false)
+    if (error) {
+      setSeconds(previous)
+      toast({ title: "Error", description: error.message, variant: "destructive" })
+      return
+    }
+    toast({ title: "Timing saved", description: `Each slide now shows for ${value} seconds.` })
+    router.refresh()
+  }
+
+  return (
+    <Card className="py-0">
+      <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-light text-primary">
+            <Timer className="h-4 w-4" />
+          </span>
+          <div className="min-w-0">
+            <Label htmlFor="hero_slide_seconds" className="font-bold">
+              Time per slide
+            </Label>
+            <p className="text-sm text-muted-foreground">How long each slide stays on screen before the next one.</p>
+          </div>
+        </div>
+        <Select value={seconds} onValueChange={save} disabled={saving}>
+          <SelectTrigger id="hero_slide_seconds" className="w-full sm:w-44">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {options.map((option) => (
+              <SelectItem key={option} value={String(option)}>
+                {option} seconds
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </CardContent>
+    </Card>
   )
 }

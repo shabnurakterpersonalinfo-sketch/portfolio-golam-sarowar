@@ -10,15 +10,17 @@ interface HeroSliderProps {
   intervalMs?: number
 }
 
-// Homepage hero carousel: auto-advances on a timer and can be dragged/swiped or
-// moved with the arrows, dots or keyboard. Autoplay pauses while the pointer is
-// over the slider, after the visitor interacts, and for reduced-motion users.
-export function HeroSlider({ children, labels, intervalMs = 7000 }: HeroSliderProps) {
+// Homepage hero carousel: auto-advances every `intervalMs` (set in the admin Hero
+// Slides list) and can be dragged/swiped or moved with the arrows, dots or keyboard.
+// Moving to a slide by hand restarts its full interval rather than stopping
+// autoplay; only the pause button and a reduced-motion preference stop it.
+export function HeroSlider({ children, labels, intervalMs = 5000 }: HeroSliderProps) {
   const slides = Children.toArray(children)
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, duration: 30 })
   const [selected, setSelected] = useState(0)
   const [playing, setPlaying] = useState(true)
-  const [hovered, setHovered] = useState(false)
+  // Bumped when the visitor grabs the slider, so the timer restarts from zero.
+  const [touched, setTouched] = useState(0)
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -30,7 +32,7 @@ export function HeroSlider({ children, labels, intervalMs = 7000 }: HeroSliderPr
   useEffect(() => {
     if (!emblaApi) return
     const onSelect = () => setSelected(emblaApi.selectedScrollSnap())
-    const onDrag = () => setPlaying(false)
+    const onDrag = () => setTouched((n) => n + 1)
     emblaApi.on("select", onSelect)
     emblaApi.on("pointerDown", onDrag)
     return () => {
@@ -40,10 +42,10 @@ export function HeroSlider({ children, labels, intervalMs = 7000 }: HeroSliderPr
   }, [emblaApi])
 
   useEffect(() => {
-    if (!emblaApi || !playing || hovered || slides.length < 2) return
+    if (!emblaApi || !playing || slides.length < 2) return
     const timer = setInterval(() => emblaApi.scrollNext(), intervalMs)
     return () => clearInterval(timer)
-  }, [emblaApi, playing, hovered, intervalMs, slides.length, selected])
+  }, [emblaApi, playing, intervalMs, slides.length, selected, touched])
 
   const goTo = useCallback((index: number) => emblaApi?.scrollTo(index), [emblaApi])
   const prev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
@@ -57,8 +59,6 @@ export function HeroSlider({ children, labels, intervalMs = 7000 }: HeroSliderPr
       role="region"
       aria-roledescription="carousel"
       aria-label="Highlights"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
       onKeyDown={(e) => {
         if (e.key === "ArrowLeft") prev()
         if (e.key === "ArrowRight") next()
@@ -84,7 +84,7 @@ export function HeroSlider({ children, labels, intervalMs = 7000 }: HeroSliderPr
       <button
         type="button"
         onClick={() => {
-          setPlaying(false)
+          setTouched((n) => n + 1)
           prev()
         }}
         aria-label="Previous slide"
@@ -95,7 +95,7 @@ export function HeroSlider({ children, labels, intervalMs = 7000 }: HeroSliderPr
       <button
         type="button"
         onClick={() => {
-          setPlaying(false)
+          setTouched((n) => n + 1)
           next()
         }}
         aria-label="Next slide"
@@ -111,7 +111,7 @@ export function HeroSlider({ children, labels, intervalMs = 7000 }: HeroSliderPr
               key={index}
               type="button"
               onClick={() => {
-                setPlaying(false)
+                setTouched((n) => n + 1)
                 goTo(index)
               }}
               aria-label={`Go to slide ${index + 1}: ${labels[index] ?? ""}`}

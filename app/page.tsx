@@ -56,6 +56,7 @@ import {
   INTRODUCTION_LABEL,
   INTRODUCTION_SLIDE,
   getHeroSlideItems,
+  heroSlideIntervalMs,
   type HeroSlideItem,
 } from "@/lib/hero-slides"
 
@@ -292,7 +293,10 @@ export default async function Home() {
           id="home"
           className="relative bg-gradient-to-br from-white via-primary-light/30 to-white"
         >
-          <HeroSlider labels={heroSlides.map((slide) => slide.heading)}>
+          <HeroSlider
+            labels={heroSlides.map((slide) => slide.heading)}
+            intervalMs={heroSlideIntervalMs(profile)}
+          >
             {heroSlides.map((slide) =>
               slide.kind === "intro" ? (
                 <div key={slide.id} className="h-full">
